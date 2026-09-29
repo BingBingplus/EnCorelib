@@ -1,0 +1,28 @@
+# local build configuration (never shipped)
+config.mk
+
+# build products
+EnCorelib
+EnCorelib.exe
+Encoretraj
+Encoretraj.exe
+capdref
+capdref.exe
+extras/moore_direct_test
+extras/moore_direct_test.exe
+extras/moore_endcover_direct
+extras/moore_endcover_direct.exe
+build_cmake/
+*.o
+
+# run output
+E0.txt
+E1.txt
+E_0.txt
+E_1.txt
+convex_hull.txt
+convex_hull_E0.txt
+out.txt
+repro/out/
+__pycache__/
+*.pyc

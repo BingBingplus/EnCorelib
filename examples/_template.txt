@@ -1,0 +1,21 @@
+# ==========================================================================
+#  Fields understood by the Makefile
+#
+#    n            dimension
+#    var          comma separated variable names
+#    ff           comma separated right-hand sides f_1,...,f_n
+#    cen, wid     initial box as centre +- width, comma separated
+#                 (alternatively set lohi directly: "lo1 hi1 lo2 hi2 ...")
+#    eps          error bound eps of equation (1.3)
+#    order        Taylor order k for StepB (the paper uses 20)
+#    T            horizon H
+#    output_mode  0=time 1=+hull 2=+counts 3=+E0/E1 files 4=+plot files
+#    mode         0=EndCover 1=Boundary
+#    method       0=tube 1=bisect 2=lohner       (Table 2 uses method=2)
+#    stepB        0=lohner 1=lohner+lognorm 2=lohnerHO+lognorm 3=lohnerHO
+#    tubedegree   0=order-1 1=Euler p>=2=Taylor-p
+#    debug        0=silent 1=containment checks
+#
+#  Every field can be overridden on the command line, e.g.
+#    make run EG=examples/eg1Volterra.mk eps=0.1 T=5.5 method=0
+# ==========================================================================
