@@ -1,0 +1,41 @@
+##############################################################################
+#  config.mk.example  --  local build configuration
+#
+#  Copy this file to  config.mk  and edit the one path below:
+#
+#      cp config.mk.example config.mk
+#
+#  config.mk is git-ignored, so your local paths never end up in the
+#  repository and you never have to edit the Makefile itself.
+##############################################################################
+
+# ── Where is CAPD? ──────────────────────────────────────────────────────────
+#  Set this to the directory you cloned CAPD into -- the one that contains
+#  capdDynSys/, capdAlg/, capdAux/, capdExt/ and a build/ subdirectory with
+#  libcapd.a in it.  Use an absolute path.
+#
+#  Linux / macOS examples:
+#      CAPD_MASTER := /home/yourname/CAPD
+#      CAPD_MASTER := /opt/CAPD
+#
+#  Windows + Cygwin example (note the /cygdrive/c/... form, not C:\...):
+#      CAPD_MASTER := /cygdrive/c/Users/yourname/CAPD
+#
+CAPD_MASTER := /change/me/to/your/CAPD
+
+# ── Alternative: an installed CAPD ──────────────────────────────────────────
+#  If you ran `make install` for CAPD and capd-config is on your PATH, leave
+#  CAPD_MASTER empty and let the Makefile find capd-config by itself, or point
+#  at it explicitly:
+#
+#      CAPD_MASTER :=
+#      CAPD_CONFIG := /usr/local/bin/capd-config
+
+# ── Optional: SymEngine ─────────────────────────────────────────────────────
+#  Only needed if you want algebraic expansion of the right-hand side.  The
+#  built-in examples do not need it.
+#
+#      SYMENGINE_DIR := /usr/local
+
+# ── Optional: compiler ──────────────────────────────────────────────────────
+#      CXX := g++-12
