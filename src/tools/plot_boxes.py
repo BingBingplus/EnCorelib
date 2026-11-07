@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """Draw an end-cover the way Figure 4 of the paper does.
 
-    python tools/plot_boxes.py <dir> [--title "Eg1, H=4"] [--save fig.png]
+    python src/tools/plot_boxes.py <dir> [--title "Eg1, H=4"] [--save fig.png]
 
 <dir> must contain E0.txt (the initial sub-boxes) and E1.txt (the cover C
 at time H), i.e. the output of `EnCorelib` at output level 3 or above --
-see repro/figure4.sh.
+see src/repro/figure4.sh.
 
 n = 2   two panels: the subdivision of B0 on top, the end-cover below.
 n = 3   three panels: the xy-, xz- and yz-projections of the cover, with
@@ -57,7 +57,7 @@ def main():
     e1p = os.path.join(args.dir, "E1.txt")
     for p in (e0p, e1p):
         if not os.path.exists(p):
-            sys.exit("missing %s -- run repro/figure4.sh first" % p)
+            sys.exit("missing %s -- run src/repro/figure4.sh first" % p)
 
     E0 = read_boxes(e0p)
     E1 = read_boxes(e1p)

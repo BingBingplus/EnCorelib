@@ -26,7 +26,7 @@ OUT=doc/out/options
 mkdir -p "$OUT"
 
 #  problem | n vars f_1 .. f_n | initial box | horizon
-#  (the right-hand sides multiplied out, see examples/_template.txt)
+#  (the right-hand sides multiplied out, see src/examples/_template.txt)
 declare -A RHS BOX HOR
 RHS[eg1]="2 x y 2*x-2*x*y -y+x*y";                         BOX[eg1]="0.9 1.1 2.9 3.1";                           HOR[eg1]=5.5
 RHS[eg2]="2 x y y -x+y-x^2*y";                             BOX[eg2]="-3.1 -2.9 2.9 3.1";                         HOR[eg2]=2

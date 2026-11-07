@@ -22,18 +22,18 @@
 #
 #  Running an example
 #  ------------------
-#      make run EG=examples/eg5Lorenz.mk
-#      make run EG=examples/eg5Lorenz.mk eps=0.1 T=4 method=0 output_mode=4
+#      make run EG=src/examples/eg5Lorenz.mk
+#      make run EG=src/examples/eg5Lorenz.mk eps=0.1 T=4 method=0 output_mode=4
 #
 #  Every field of a .mk file can be overridden on the command line; see
-#  examples/_template.txt for the list.
+#  src/examples/_template.txt for the list.
 ##############################################################################
 
 CXX      ?= g++
 CXXFLAGS ?= -std=c++17 -O2 -Wall -Wno-sign-compare -Wno-overloaded-virtual
 
 TARGET  := EnCorelib
-HEADERS := types.h progress.h symparse.h stepAB.h extend.h refine.h endcover.h boundary.h
+HEADERS := src/types.h src/progress.h src/symparse.h src/stepAB.h src/extend.h src/refine.h src/endcover.h src/boundary.h
 
 # ────────────────────────────────────────────────────────────────────────────
 #  1. Locate CAPD
@@ -116,30 +116,30 @@ endif
 # ────────────────────────────────────────────────────────────────────────────
 all: $(TARGET)
 
-$(TARGET): EnCorelib.cpp $(HEADERS)
+$(TARGET): src/EnCorelib.cpp $(HEADERS)
 	$(CXX) $(CXXFLAGS) $(CAPD_CFLAGS) $(SYMENGINE_CFLAGS) \
-	    EnCorelib.cpp -o $(TARGET) \
+	    src/EnCorelib.cpp -o $(TARGET) \
 	    $(CAPD_LIBS) $(SYMENGINE_LIBS)
 	@echo "Built $(TARGET)"
 
 # Encoretraj: validated trajectory printer used for Figure 1 (top row).
-Encoretraj: tools/trajectory.cpp $(HEADERS)
+Encoretraj: src/tools/trajectory.cpp $(HEADERS)
 	$(CXX) $(CXXFLAGS) $(CAPD_CFLAGS) $(SYMENGINE_CFLAGS) \
-	    tools/trajectory.cpp -o Encoretraj \
+	    src/tools/trajectory.cpp -o Encoretraj \
 	    $(CAPD_LIBS) $(SYMENGINE_LIBS)
 	@echo "Built Encoretraj"
 
-# capdref: the reference integrator behind repro/competitors/.
-capdref: repro/competitors/capd_compare.cpp $(HEADERS)
+# capdref: the reference integrator behind src/repro/competitors/.
+capdref: src/repro/competitors/capd_compare.cpp $(HEADERS)
 	$(CXX) $(CXXFLAGS) $(CAPD_CFLAGS) \
-	    repro/competitors/capd_compare.cpp -o capdref \
+	    src/repro/competitors/capd_compare.cpp -o capdref \
 	    $(CAPD_LIBS)
 	@echo "Built capdref"
 
-# Encoreaudit: box-by-box check of a cover (repro/audit_cover.sh).
-Encoreaudit: tools/audit_cover.cpp $(HEADERS)
+# Encoreaudit: box-by-box check of a cover (src/repro/audit_cover.sh).
+Encoreaudit: src/tools/audit_cover.cpp $(HEADERS)
 	$(CXX) $(CXXFLAGS) $(CAPD_CFLAGS) $(SYMENGINE_CFLAGS) \
-	    tools/audit_cover.cpp -o Encoreaudit \
+	    src/tools/audit_cover.cpp -o Encoreaudit \
 	    $(CAPD_LIBS) $(SYMENGINE_LIBS)
 	@echo "Built Encoreaudit"
 
@@ -185,30 +185,30 @@ BOX = $(if $(lohi),$(lohi),$(shell awk -v c='$(cen)' -v w='$(wid)' \
         'BEGIN{nc=split(c,C,","); split(w,W,","); \
                for(i=1;i<=nc;i++) printf "%.17g %.17g ",C[i]-W[i],C[i]+W[i]}'))
 
-# `var` and `ff` stay quoted all the way into tools/run.sh, which splits them
+# `var` and `ff` stay quoted all the way into src/tools/run.sh, which splits them
 # on commas.
 RUNARGS = $(output_mode) $(mode) $(method) $(stepB) $(tubedegree) $(n) \
           '$(var)' '$(ff)' $(eps) $(order) $(T) $(debug) $(BOX)
 
 run: $(TARGET)
-	@bash tools/run.sh ./$(TARGET) $(RUNARGS)
+	@bash src/tools/run.sh ./$(TARGET) $(RUNARGS)
 
 show-args:
-	@SHOW_ONLY=1 bash tools/run.sh ./$(TARGET) $(RUNARGS)
+	@SHOW_ONLY=1 bash src/tools/run.sh ./$(TARGET) $(RUNARGS)
 
 .PHONY: run show-args
 
 # ── Per-example shortcuts ──────────────────────────────────────────────────
-run-eg1Volterra:        ; @$(MAKE) --no-print-directory run EG=examples/eg1Volterra.mk
-run-eg2VanDerPol:       ; @$(MAKE) --no-print-directory run EG=examples/eg2VanDerPol.mk
-run-eg3Quadratic:       ; @$(MAKE) --no-print-directory run EG=examples/eg3Quadratic.mk
-run-eg4FitzHughNagumo:  ; @$(MAKE) --no-print-directory run EG=examples/eg4FitzHughNagumo.mk
-run-eg5Lorenz:          ; @$(MAKE) --no-print-directory run EG=examples/eg5Lorenz.mk
-run-eg6Rossler:         ; @$(MAKE) --no-print-directory run EG=examples/eg6Rossler.mk
+run-eg1Volterra:        ; @$(MAKE) --no-print-directory run EG=src/examples/eg1Volterra.mk
+run-eg2VanDerPol:       ; @$(MAKE) --no-print-directory run EG=src/examples/eg2VanDerPol.mk
+run-eg3Quadratic:       ; @$(MAKE) --no-print-directory run EG=src/examples/eg3Quadratic.mk
+run-eg4FitzHughNagumo:  ; @$(MAKE) --no-print-directory run EG=src/examples/eg4FitzHughNagumo.mk
+run-eg5Lorenz:          ; @$(MAKE) --no-print-directory run EG=src/examples/eg5Lorenz.mk
+run-eg6Rossler:         ; @$(MAKE) --no-print-directory run EG=src/examples/eg6Rossler.mk
 
 # Generic: make run-endcover-eg5Lorenz / make run-boundary-eg5Lorenz
-run-endcover-%: $(TARGET) ; @$(MAKE) --no-print-directory run EG=examples/$*.mk mode=0
-run-boundary-%: $(TARGET) ; @$(MAKE) --no-print-directory run EG=examples/$*.mk mode=1
+run-endcover-%: $(TARGET) ; @$(MAKE) --no-print-directory run EG=src/examples/$*.mk mode=0
+run-boundary-%: $(TARGET) ; @$(MAKE) --no-print-directory run EG=src/examples/$*.mk mode=1
 
 .PHONY: run-eg1Volterra run-eg2VanDerPol run-eg3Quadratic \
         run-eg4FitzHughNagumo run-eg5Lorenz run-eg6Rossler
@@ -217,33 +217,33 @@ run-boundary-%: $(TARGET) ; @$(MAKE) --no-print-directory run EG=examples/$*.mk 
 #  5. The tables and figures of the paper
 # ────────────────────────────────────────────────────────────────────────────
 table2: $(TARGET)
-	@bash repro/table2.sh
+	@bash src/repro/table2.sh
 
 table2-%: $(TARGET)
-	@bash repro/table2.sh $*
+	@bash src/repro/table2.sh $*
 
 # Cell-by-cell comparison of the last table2 run against the printed table.
 compare:
-	@$(if $(PYTHON),$(PYTHON),python3) repro/compare.py
+	@$(if $(PYTHON),$(PYTHON),python3) src/repro/compare.py
 
 figure1: $(TARGET) Encoretraj
-	@bash repro/figure1.sh
+	@bash src/repro/figure1.sh
 
 figure4: $(TARGET)
-	@bash repro/figure4.sh
+	@bash src/repro/figure4.sh
 
 check: $(TARGET)
-	@bash repro/check.sh
+	@bash src/repro/check.sh
 
 # Integrate a grid of sample points of B0 with ./Encoretraj and confirm each
 # image lies inside some box of the cover.
 verify: $(TARGET) Encoretraj
-	@bash repro/verify_cover.sh
+	@bash src/repro/verify_cover.sh
 
 # Box by box: every box of the cover must meet the images of the centre and
 # the corners of its own sub-box of B0.
 audit: $(TARGET) Encoreaudit
-	@bash repro/audit_cover.sh
+	@bash src/repro/audit_cover.sh
 
 .PHONY: table2 table2-% compare figure1 figure4 check verify audit
 
@@ -258,16 +258,16 @@ cmake-build:
 .PHONY: cmake-build
 
 # ────────────────────────────────────────────────────────────────────────────
-#  7. extras/
+#  7. src/extras/
 # ────────────────────────────────────────────────────────────────────────────
-extras/moore_direct_test: extras/moore_direct_test.cpp $(HEADERS)
-	$(CXX) $(CXXFLAGS) $(CAPD_CFLAGS) extras/moore_direct_test.cpp \
+src/extras/moore_direct_test: src/extras/moore_direct_test.cpp $(HEADERS)
+	$(CXX) $(CXXFLAGS) $(CAPD_CFLAGS) src/extras/moore_direct_test.cpp \
 	    -o $@ $(CAPD_LIBS)
 
-extras/moore_endcover_direct: extras/moore_endcover_direct.cpp $(HEADERS)
-	$(CXX) $(CXXFLAGS) $(CAPD_CFLAGS) extras/moore_endcover_direct.cpp \
+src/extras/moore_endcover_direct: src/extras/moore_endcover_direct.cpp $(HEADERS)
+	$(CXX) $(CXXFLAGS) $(CAPD_CFLAGS) src/extras/moore_endcover_direct.cpp \
 	    -o $@ $(CAPD_LIBS)
 
-extras-all: extras/moore_direct_test extras/moore_endcover_direct
+extras-all: src/extras/moore_direct_test src/extras/moore_endcover_direct
 
 .PHONY: extras-all

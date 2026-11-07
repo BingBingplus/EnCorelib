@@ -3,7 +3,7 @@
 
     python3 doc/make_figures.py
 
-reads   doc/out/eijgenraam/E1.txt         (examples/fig1Eijgenraam.mk)
+reads   doc/out/eijgenraam/E1.txt         (src/examples/fig1Eijgenraam.mk)
         doc/out/eg1_eps0.1/E0.txt, E1.txt  (Eg1 at eps = 0.1, H = 4)
 writes  doc/fig/eijgenraam.pdf, doc/fig/eg1_cover.pdf
 

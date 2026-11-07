@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ===========================================================================
-#  repro/figure4.sh  --  data for Figure 4 ("Geometry of EndCovers")
+#  src/repro/figure4.sh  --  data for Figure 4 ("Geometry of EndCovers")
 #
 #  For each example of Table 1 this runs EndCover at output level 3, which
 #  writes
@@ -9,16 +9,16 @@
 #  into repro/out/fig4/<tag>/.
 #
 #  Draw them with
-#       python tools/plot_boxes.py repro/out/fig4/eg1 --title "Eg1, H=4"
+#       python src/tools/plot_boxes.py repro/out/fig4/eg1 --title "Eg1, H=4"
 #
 #  In 2D the script produces the two panels of Figure 4 (subdivision of B0
 #  on top, the end-cover below); in 3D it produces the xy-, xz- and
 #  yz-projections.
 #
 #  Usage
-#      bash repro/figure4.sh                 all six examples
-#      bash repro/figure4.sh eg1 eg5         only those
-#      EPS=0.05 bash repro/figure4.sh eg1
+#      bash src/repro/figure4.sh                 all six examples
+#      bash src/repro/figure4.sh eg1 eg5         only those
+#      EPS=0.05 bash src/repro/figure4.sh eg1
 # ===========================================================================
 set -u
 
@@ -58,4 +58,4 @@ done
 
 echo
 echo "data written under repro/out/fig4/"
-echo "plot with:  python tools/plot_boxes.py repro/out/fig4/eg1"
+echo "plot with:  python src/tools/plot_boxes.py repro/out/fig4/eg1"

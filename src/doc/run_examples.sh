@@ -39,14 +39,14 @@ echo "short examples"
 ex  check          'make check'
 ex2 usage          './EnCorelib'
 ex  quickstart     'make run-eg1Volterra'
-ex  showargs       'make show-args EG=examples/eg1Volterra.mk'
+ex  showargs       'make show-args EG=src/examples/eg1Volterra.mk'
 ex  cli_eg1        "./EnCorelib $LV 1.0 20 4 0  $LVBOX"
-ex  lorenz_T2      'make run EG=examples/eg5Lorenz.mk T=2'
+ex  lorenz_T2      'make run EG=src/examples/eg5Lorenz.mk T=2'
 ex  boundary       'make run-boundary-eg1Volterra'
 
 # a problem of one's own (section 4 of the guide)
-ex  pendulum       'make run EG=examples/dampedPendulum.mk'
-ex2 pendulum_debug 'make run EG=examples/dampedPendulum.mk eps=0.05 debug=1'
+ex  pendulum       'make run EG=src/examples/dampedPendulum.mk'
+ex2 pendulum_debug 'make run EG=src/examples/dampedPendulum.mk eps=0.05 debug=1'
 ex  sci            './EnCorelib 1 0 0 0 0 2 x y y "-sin(x)-2e-1*y" 0.1 20 10 0  0.9 1.1  -0.1 0.1'
 ex2 parse_error    './EnCorelib 1 0 0 0 0 2 x y y "-sin(x)-0.2*Y" 0.1 20 10 0  0.9 1.1  -0.1 0.1'
 
@@ -60,7 +60,7 @@ ex  files          "./EnCorelib 3 0 0 0 0 2 x y 2*x-2*x*y -y+x*y 0.1 20 4 0  $LV
 mkdir -p "$OUT/eg1_eps0.1" && cp E0.txt E1.txt convex_hull.txt "$OUT/eg1_eps0.1/"
 ex  files_head     'head -n 3 E1.txt'
 ex  files_log      'tail -n 2 out.txt'
-ex  eijgenraam     'make run EG=examples/fig1Eijgenraam.mk'
+ex  eijgenraam     'make run EG=src/examples/fig1Eijgenraam.mk'
 mkdir -p "$OUT/eijgenraam" && cp E0.txt E1.txt "$OUT/eijgenraam/"
 
 # the box-by-box check (section 8)
@@ -68,9 +68,9 @@ ex  audit          'make audit'
 
 if [ "${LONG:-0}" = "1" ]; then
   echo "long examples"
-  ex2 lorenz_T5        'make run EG=examples/eg5Lorenz.mk T=5 debug=1'
-  ex2 lorenz_T5_stepB3 'make run EG=examples/eg5Lorenz.mk T=5 stepB=3 debug=1'
-  ex2 lorenz_T100      'make run EG=examples/eg5Lorenz.mk T=100 stepB=3 debug=1'
+  ex2 lorenz_T5        'make run EG=src/examples/eg5Lorenz.mk T=5 debug=1'
+  ex2 lorenz_T5_stepB3 'make run EG=src/examples/eg5Lorenz.mk T=5 stepB=3 debug=1'
+  ex2 lorenz_T100      'make run EG=src/examples/eg5Lorenz.mk T=100 stepB=3 debug=1'
 fi
 
 echo "figures:  python3 doc/make_figures.py"

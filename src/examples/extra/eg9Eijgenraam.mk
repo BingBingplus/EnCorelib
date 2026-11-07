@@ -1,25 +1,22 @@
 # ══════════════════════════════════════════════════════════════════════════
-# eg10Moore.mk – Moore's rotation example (classical wrapping-effect test)
+# eg9Eijgenraam.mk – Eijgenraam's wrapping-effect example (Thesis, Ex. 6.4.2,
+# pp. 127-128; also reproduced in Nedialkov's PhD thesis)
 #
-#   x' = y
-#   y' = -x
+#   x' = 0
+#   y' = x^2
 #
-# Initial box:  x in [0.95,1.05], y in [-0.05,0.05]  (a small square near (1,0))
+# Initial set:  x in [-lambda, lambda],  y = 0.
+# Exact solution set at time T:  the parabola  y = T*x^2,  x in [-lambda,lambda].
 #
-# The flow is an exact rigid rotation:  (x(t),y(t)) = R(-t)*(x0,y0), a linear
-# map with a skew-symmetric Jacobian [[0,1],[-1,0]] (purely imaginary
-# eigenvalues, log-norm = 0). So the TRUE end set at any time T is just the
-# initial square, rotated by angle -T about the origin -- same size, same
-# shape, forever.  This is R. Moore's classical example showing that a naive
-# interval method (re-enclosing the rotated box by an axis-aligned box every
-# step) suffers *unbounded* wrapping-effect growth over many periods, even
-# though the true reachable set never grows.  It is the standard benchmark
-# for testing whether a validated integrator (QR-preconditioning / CR-Lohner
-# doubleton / eps-cover with subdivision) avoids this blow-up.
+# Eijgenraam's point: any single convex enclosure (box, parallelepiped, ...)
+# of this curved end set has excess area of quadratic order in lambda --
+# it is *impossible* to tightly enclose the whole set with ONE convex region.
+# Our method instead subdivides the initial box and covers the end set with
+# many small (eps-small) boxes, so it does not hit this obstruction.
 #
 # Run (from version_2026/):
-#   make run EG=examples/eg10Moore.mk           # EndCover mode (mode=0)
-#   make run EG=examples/eg10Moore.mk T=6.283185307179586   # 1 period
+#   make run EG=src/examples/eg9Eijgenraam.mk           # EndCover mode (mode=0)
+#   make run EG=src/examples/eg9Eijgenraam.mk output_mode=3
 #
 # CLI format (for reference):
 #   ./EnCorelib output_mode mode method stepB tubedegree n vars... funs... eps order T debug lo1 hi1 ...
@@ -28,18 +25,18 @@
 #── Problem ────────────────────────────────────────────────────────────────
 n   = 2
 var = x,y
-ff  = y,-x
+ff  = 0,x^2
 
-# Initial box: center ± width per coordinate.
-cen = 1.0,0.0
-wid = 0.05,0.05
+# Initial box: center ± width per coordinate.  x in [-lambda,lambda], y=0.
+cen = 0.0,0.0
+wid = 1.0,0.0
 
 #── Enclosure parameters ───────────────────────────────────────────────────
 eps   = 0.02       # max width of end-enclosure
 order = 20         # Taylor order for stepB
 
 #── Time ───────────────────────────────────────────────────────────────────
-T = 6.283185307179586   # one full period (2*pi)
+T = 1.0
 
 #── Algorithm options ──────────────────────────────────────────────────────
 # mode: 0 = EndCover (whole box), 1 = Boundary (edges/faces only)
@@ -56,7 +53,7 @@ tubedegree = 0
 
 #── Output ─────────────────────────────────────────────────────────────────
 # output_mode: 0=time 1=+hull 2=+counts 3=+E0/E1 files 4=+plot files
-output_mode = 2
+output_mode = 3
 
 # debug: 0 = silent, 1 = one progress line per sub-box, 2 and 3 = more detail
 debug = 0

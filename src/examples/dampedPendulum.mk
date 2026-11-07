@@ -7,8 +7,8 @@
 #      B0 = Box(1,0)(0.1)         H = 10
 #
 #  The user guide (doc/userguide.pdf) builds this file step by step.
-#      make run EG=examples/dampedPendulum.mk
-#      make run EG=examples/dampedPendulum.mk eps=0.05 debug=1
+#      make run EG=src/examples/dampedPendulum.mk
+#      make run EG=src/examples/dampedPendulum.mk eps=0.05 debug=1
 # ==========================================================================
 n   = 2
 var = x,y

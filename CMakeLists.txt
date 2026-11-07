@@ -87,27 +87,27 @@ function(EnCorelib_configure tgt)
     endif()
 endfunction()
 
-add_executable(EnCorelib EnCorelib.cpp)
+add_executable(EnCorelib src/EnCorelib.cpp)
 EnCorelib_configure(EnCorelib)
 
 # Validated trajectory printer used for Figure 1 (top row).
-add_executable(Encoretraj tools/trajectory.cpp)
+add_executable(Encoretraj src/tools/trajectory.cpp)
 EnCorelib_configure(Encoretraj)
 
 # CAPD (Cr-Lohner, r = 3) reference used for the CAPD rows of Table 2.
-add_executable(capdref repro/competitors/capd_compare.cpp)
+add_executable(capdref src/repro/competitors/capd_compare.cpp)
 EnCorelib_configure(capdref)
 
-# Box-by-box check of a cover (repro/audit_cover.sh).
-add_executable(Encoreaudit tools/audit_cover.cpp)
+# Box-by-box check of a cover (src/repro/audit_cover.sh).
+add_executable(Encoreaudit src/tools/audit_cover.cpp)
 EnCorelib_configure(Encoreaudit)
 
 # ────────────────────────────────────────────────────────────────────────────
-#  Self-test:  ctest    (or: bash repro/check.sh)
+#  Self-test:  ctest    (or: bash src/repro/check.sh)
 # ────────────────────────────────────────────────────────────────────────────
 enable_testing()
 add_test(NAME selftest
-         COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/repro/check.sh
+         COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/src/repro/check.sh
          WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 
 # ────────────────────────────────────────────────────────────────────────────
@@ -115,6 +115,6 @@ add_test(NAME selftest
 # ────────────────────────────────────────────────────────────────────────────
 install(TARGETS EnCorelib Encoretraj capdref Encoreaudit DESTINATION bin)
 install(FILES
-    types.h progress.h symparse.h stepAB.h extend.h refine.h endcover.h boundary.h
+    src/types.h src/progress.h src/symparse.h src/stepAB.h src/extend.h src/refine.h src/endcover.h src/boundary.h
     DESTINATION include/EnCorelib)
-install(DIRECTORY examples/ DESTINATION share/EnCorelib/examples)
+install(DIRECTORY src/examples/ DESTINATION share/EnCorelib/examples)

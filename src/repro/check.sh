@@ -1,20 +1,20 @@
 #!/usr/bin/env bash
 # ===========================================================================
-#  repro/check.sh  --  fast self-test (a few seconds)
+#  src/repro/check.sh  --  fast self-test (a few seconds)
 #
 #  Runs a handful of configurations and compares B1 (rounded to two decimals,
 #  as printed in Table 2) and #(C) against known-good values.  Use it after
 #  building, or after changing the code, to confirm nothing has drifted.
 #
-#      bash repro/check.sh          (or:  make check)
+#      bash src/repro/check.sh          (or:  make check)
 #
-#  BASELINE=1 bash repro/check.sh   prints what the code currently produces,
+#  BASELINE=1 bash src/repro/check.sh   prints what the code currently produces,
 #                                   in the form the `check` calls below take,
 #                                   so the expectations can be re-baselined
 #                                   after an intentional change.
 #
 #  The right-hand sides are written multiplied out (see
-#  examples/_template.txt), so the expected values hold whether or not the
+#  src/examples/_template.txt), so the expected values hold whether or not the
 #  program was built with SymEngine.
 # ===========================================================================
 set -u

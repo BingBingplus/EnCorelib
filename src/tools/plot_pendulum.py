@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Reproduce the top row of Figure 1 (undamped pendulum).
 
-    python tools/plot_pendulum.py repro/out/fig1/pendulum [--save fig1a.png]
+    python src/tools/plot_pendulum.py repro/out/fig1/pendulum [--save fig1a.png]
 
 Left panel   a non-validated RK45 integration, the same family of method as
              MATLAB's ode45 with default tolerances.  The orbit started at
@@ -10,9 +10,9 @@ Left panel   a non-validated RK45 integration, the same family of method as
              is below the separatrix (energy 1 - cos x + y^2/2 = 2 < 4) and
              must stay bounded in x.
 Right panel  the validated enclosures produced by ./Encoretraj (see
-             repro/figure1.sh), which stay on the correct orbit.
+             src/repro/figure1.sh), which stay on the correct orbit.
 
-The left panel needs scipy; if MATLAB is available run tools/pendulum_ode45.m
+The left panel needs scipy; if MATLAB is available run src/tools/pendulum_ode45.m
 instead, which is what the paper used.
 """
 
@@ -74,7 +74,7 @@ def main():
         axes[0].plot(r[0], r[1], lw=1.0, color=colors[y0], label="y(0)=%g" % y0)
     axes[0].set_title("RK45 (same family as ode45), no error control on the orbit")
     if not ok:
-        axes[0].text(0.5, 0.5, "install scipy, or run tools/pendulum_ode45.m",
+        axes[0].text(0.5, 0.5, "install scipy, or run src/tools/pendulum_ode45.m",
                      ha="center", transform=axes[0].transAxes)
 
     found = False
@@ -88,7 +88,7 @@ def main():
         found = True
     axes[1].set_title("validated enclosures from ./Encoretraj")
     if not found:
-        axes[1].text(0.5, 0.5, "run repro/figure1.sh first",
+        axes[1].text(0.5, 0.5, "run src/repro/figure1.sh first",
                      ha="center", transform=axes[1].transAxes)
 
     for ax in axes:

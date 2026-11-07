@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ===========================================================================
-#  tools/run.sh  --  invoke EnCorelib from the Makefile
+#  src/tools/run.sh  --  invoke EnCorelib from the Makefile
 #
 #  The Makefile keeps the variable names and the right-hand sides as single
 #  comma-separated strings (`var`, `ff`).  Expanding them straight into a
@@ -8,7 +8,7 @@
 #  "x*(28-z)-y", so the splitting is done here instead, with proper quoting.
 #
 #  Usage
-#      bash tools/run.sh BIN output_mode mode method stepB tubedegree n \
+#      bash src/tools/run.sh BIN output_mode mode method stepB tubedegree n \
 #                        VAR_CSV FF_CSV eps order T debug  lo1 hi1 ...
 #
 #  A right-hand side may not itself contain a comma (commas separate the
@@ -17,7 +17,7 @@
 set -u
 
 if [ "$#" -lt 13 ]; then
-  echo "tools/run.sh: too few arguments" >&2
+  echo "src/tools/run.sh: too few arguments" >&2
   exit 2
 fi
 
@@ -48,7 +48,7 @@ split_csv "$VAR_CSV"; VARS=("${SPLIT[@]}")
 split_csv "$FF_CSV";  FFS=("${SPLIT[@]}")
 
 if [ "${#VARS[@]}" -ne "$N" ] || [ "${#FFS[@]}" -ne "$N" ]; then
-  echo "tools/run.sh: n=$N but got ${#VARS[@]} variables and ${#FFS[@]} functions" >&2
+  echo "src/tools/run.sh: n=$N but got ${#VARS[@]} variables and ${#FFS[@]} functions" >&2
   exit 2
 fi
 

@@ -1,18 +1,18 @@
 #!/usr/bin/env bash
 # ===========================================================================
-#  repro/audit_cover.sh  --  box-by-box check of the computed covers
+#  src/repro/audit_cover.sh  --  box-by-box check of the computed covers
 #
 #  For each problem this runs EnCorelib at output level 3 and hands E0.txt
 #  and E1.txt to ./Encoreaudit, which checks that every box of the cover C
 #  meets the validated images of the centre and the corners of its own
-#  sub-box of B0 (see tools/audit_cover.cpp).  repro/verify_cover.sh checks
+#  sub-box of B0 (see src/tools/audit_cover.cpp).  src/repro/verify_cover.sh checks
 #  that the sample images lie in some box of C; this check also catches a
 #  box of C that does not enclose the image of its sub-box.
 #
 #  Usage
-#      bash repro/audit_cover.sh                all problems, methods 0 1 2
-#      bash repro/audit_cover.sh eg1 eij
-#      EPS=0.05 METHODS="0 2" STEPB=3 bash repro/audit_cover.sh eg2
+#      bash src/repro/audit_cover.sh                all problems, methods 0 1 2
+#      bash src/repro/audit_cover.sh eg1 eij
+#      EPS=0.05 METHODS="0 2" STEPB=3 bash src/repro/audit_cover.sh eg2
 #
 #  Requires:  make             (./EnCorelib)
 #             make Encoreaudit (./Encoreaudit)

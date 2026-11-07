@@ -6,8 +6,8 @@
 #
 #  MATLAB's ode45 run from (x,y) = (0, 2.0) makes one loop and then veers
 #  onto a different orbit, which is qualitatively wrong; the validated
-#  computation converges to the saddle point.  See repro/figure1.sh and
-#  tools/pendulum_ode45.m.
+#  computation converges to the saddle point.  See src/repro/figure1.sh and
+#  src/tools/pendulum_ode45.m.
 #
 #  The .mk below covers the initial *point* (0,2) -- a degenerate box.
 # ==========================================================================

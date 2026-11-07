@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """Reproduce the bottom row of Figure 1 (Eijgenraam's example).
 
-    python tools/plot_eijgenraam.py repro/out/fig1/eijgenraam [--save fig1b.png]
+    python src/tools/plot_eijgenraam.py repro/out/fig1/eijgenraam [--save fig1b.png]
 
 The directory must contain sub-directories eps<value>/ each holding an
-E1.txt, as produced by repro/figure1.sh.
+E1.txt, as produced by src/repro/figure1.sh.
 
 Panel (a) shows why no single convex set can enclose the end set tightly:
 the exact end set at T = 1 is the parabola  y = x^2,  |x| <= 1,  and every
@@ -52,7 +52,7 @@ def main():
             runs.append((float(m.group(1)), read_boxes(f)))
     runs.sort(key=lambda r: -r[0])
     if not runs:
-        sys.exit("no eps*/E1.txt found under %s -- run repro/figure1.sh" % args.dir)
+        sys.exit("no eps*/E1.txt found under %s -- run src/repro/figure1.sh" % args.dir)
 
     fig, axes = plt.subplots(1, 1 + len(runs), figsize=(4.0 * (1 + len(runs)), 4.0))
     if 1 + len(runs) == 1:

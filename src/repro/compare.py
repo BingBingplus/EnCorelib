@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
 """Compare a table2.sh run against the printed Table 2, cell by cell.
 
-    make table2                 # or: bash repro/table2.sh eg2 eg4 eg6
-    python repro/compare.py
+    make table2                 # or: bash src/repro/table2.sh eg2 eg4 eg6
+    python src/repro/compare.py
 
 Reads repro/out/table2.txt (what this code produced) and
-repro/table2_paper.txt (the printed table, transcribed) and reports, for
+src/repro/table2_paper.txt (the printed table, transcribed) and reports, for
 every cell present in both, whether B1, rho and #(C) agree.
 
 Sampling a few examples is enough to see whether the build reproduces the
-paper; `bash repro/table2.sh eg2 eg4 eg6` takes about a minute.
+paper; `bash src/repro/table2.sh eg2 eg4 eg6` takes about a minute.
 """
 
 import os
@@ -81,7 +81,7 @@ def main():
     print("%d of %d compared cells reproduce the printed table exactly."
           % (agree, len(shared)))
     if agree != len(shared):
-        print("Cells marked DIFF: see the note at the bottom of repro/table2_paper.txt,")
+        print("Cells marked DIFF: see the note at the bottom of src/repro/table2_paper.txt,")
         print("which lists the entries of the printed table that are inconsistent with")
         print("their own rho column.")
     return 0

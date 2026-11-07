@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ===========================================================================
-#  repro/figure1.sh  --  data for Figure 1
+#  src/repro/figure1.sh  --  data for Figure 1
 #
 #  BOTTOM ROW -- Eijgenraam's example [9, Ex. 6.4.2, p.127]
 #
@@ -15,7 +15,7 @@
 #
 #      Validated trajectories from (0, y0), y0 in {-2.5, 1.5, 2.0, 2.5}.
 #      MATLAB's ode45 gets the y0 = 2.0 orbit qualitatively wrong; run
-#      tools/pendulum_ode45.m (MATLAB) or tools/plot_pendulum.py (Python)
+#      src/tools/pendulum_ode45.m (MATLAB) or src/tools/plot_pendulum.py (Python)
 #      for the left-hand panel.
 #
 #  Output:  repro/out/fig1/eijgenraam/eps<value>/{E0,E1}.txt
@@ -56,5 +56,5 @@ fi
 
 echo
 echo "data written under repro/out/fig1/"
-echo "plot with:  python tools/plot_eijgenraam.py repro/out/fig1/eijgenraam"
-echo "            python tools/plot_pendulum.py   repro/out/fig1/pendulum"
+echo "plot with:  python src/tools/plot_eijgenraam.py repro/out/fig1/eijgenraam"
+echo "            python src/tools/plot_pendulum.py   repro/out/fig1/pendulum"

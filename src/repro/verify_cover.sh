@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ===========================================================================
-#  repro/verify_cover.sh  --  independent check of the computed cover
+#  src/repro/verify_cover.sh  --  independent check of the computed cover
 #
 #  The paper guarantees  End(B0,H) subset Union(C).  This script tests that
 #  guarantee from the outside: it takes a grid of sample points of B0,
@@ -10,9 +10,9 @@
 #
 #
 #  Usage
-#      bash repro/verify_cover.sh                 all examples, all methods
-#      bash repro/verify_cover.sh eg1 eg5
-#      GRID=7 EPS=0.1 bash repro/verify_cover.sh eg2
+#      bash src/repro/verify_cover.sh                 all examples, all methods
+#      bash src/repro/verify_cover.sh eg1 eg5
+#      GRID=7 EPS=0.1 bash src/repro/verify_cover.sh eg2
 #
 #  Requires:  make          (./EnCorelib)
 #             make Encoretraj  (./Encoretraj)
