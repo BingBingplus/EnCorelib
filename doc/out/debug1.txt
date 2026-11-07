@@ -1,24 +1,15 @@
-$ ./EnCorelib 2 0 0 0 0 2 x y 2*x-2*x*y -y+x*y 0.5 20 4 1  0.9 1.1  2.9 3.1
-EnCorelib  mode=EndCover  method=tube  stepB=lohner  tubedegree=1  order=20  n=2
+$ ./EndCorelib 2 0 0 0 0 2 x y 2*x-2*x*y -y+x*y 0.5 20 4 1  0.9 1.1  2.9 3.1
+EndCorelib  mode=EndCover  method=tube  stepB=lohner  tubedegree=1  order=20  n=2
          f  = (2*x-2*x*y, -y+x*y)
          B0 = {[0.9, 1.1],[2.9, 3.1]}   H=4   eps=0.5
      time    run depth  wmax(B) wmax(E_m) queue    done  outcome
-     0.6s      1     0  2.0e-01   4.1e-01     4    0.0%  split, E_0 -> 1.0e-01
-     0.7s      2     1  1.0e-01   4.6e-01     3   25.0%  resolved
-     0.9s      3     1  1.0e-01   4.8e-01     2   50.0%  resolved
-     1.2s      4     1  1.0e-01   1.6e-01     5   50.0%  split, E_0 -> 5.0e-02
-     1.3s      5     2  5.0e-02   1.7e-01     4   56.2%  resolved
-     1.4s      6     2  5.0e-02   1.7e-01     3   62.5%  resolved
-     1.5s      7     2  5.0e-02   1.8e-01     2   68.7%  resolved
-     1.6s      8     2  5.0e-02   1.8e-01     1   75.0%  resolved
-     2.1s      9     1  1.0e-01   1.7e-01     4   75.0%  split, E_0 -> 5.0e-02
-     2.2s     10     2  5.0e-02   1.7e-01     3   81.2%  resolved
-     2.3s     11     2  5.0e-02   1.8e-01     2   87.5%  resolved
-     2.4s     12     2  5.0e-02   1.8e-01     1   93.8%  resolved
-     2.5s     13     2  5.0e-02   1.9e-01     0  100.0%  resolved
-     2.5s  EndCover finished: 13 sub-boxes processed, 10 resolved, deepest level 2, #(C)=13
-time(ms)=2504
-Hull(T=4.000000)={[1.093289, 1.737725],[0.145485, 0.220135]}
-B1=(1.415507, 0.182810) +- (0.322218, 0.037325)
-wmax(B1)=0.644436
-#(C)=13  #E0=13  max_{B in C} wmax(B)=0.481747
+     0.4s      1     0  2.0e-01   4.1e-01     2   25.0%  resolved, E_0 -> 1.0e-01, 2 split off
+     0.6s      2     2  1.0e-01   4.0e-01     1   50.0%  resolved
+     0.9s      3     1  2.0e-01   3.7e-01     1   75.0%  resolved, E_0 -> 1.0e-01, 1 split off
+     1.0s      4     2  1.0e-01   3.6e-01     0  100.0%  resolved
+     1.0s  EndCover finished: 4 scaffolds processed, deepest level 2, #(C)=4
+time(ms)=976
+Hull(T=4.000000)={[1.143705, 1.784663],[0.155291, 0.229647]}
+B1=(1.464184, 0.192469) +- (0.320479, 0.037178)
+wmax(B1)=0.640959
+#(C)=4  #E0=4  max_{B in C} wmax(B)=0.414844

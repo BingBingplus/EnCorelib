@@ -2,13 +2,13 @@
 // ===========================================================================
 //  boundary.h  --  scaffold driver + the Boundary covering mode
 //
-//  runScaffold()  runs one scaffold (Extend / Refine) for a single initial
-//                 box up to time H.  It is the common engine of both modes.
+//  runScaffold()  brings one scaffold to the horizon H and refines it
+//                 (Extend / Refine).  It is the common engine of both modes.
 //
-//  mode = 0 (EndCover)  see EnCorelib.cpp: EndCover subdivides all of B0.
-//  mode = 1 (Boundary)  only the boundary of B0 is covered -- the four edges
-//                       in 2D, the 2n faces in nD.  For a flow, the image of
-//                       the boundary bounds the image of the interior, so the
+//  mode = 0 (EndCover)  see EndCorelib.cpp: EndCover covers all of B0.
+//  mode = 1 (Boundary)  EndCover is applied to each of the 2n faces of B0 --
+//                       the four edges in 2D.  For a flow, the image of the
+//                       boundary bounds the image of the interior, so the
 //                       hull of the boundary cover is an enclosure of
 //                       End(B0,H) whenever End(B0,H) is simply connected.
 // ===========================================================================
@@ -23,45 +23,44 @@
 #include <memory>
 
 #include "refine.h"    // Bisect, EulerTube, Split, Refine, Extend
-#include "endcover.h"  // EndCover (used for the nD faces)
+#include "endcover.h"  // EndCover
 
 // ═══════════════════════════════════════════════════════════════════════════
-//  runScaffold : Init(B) -> Extend/Refine until S.T == H
+//  runScaffold : bring S to the horizon, then S.Refine(eps0)
 // ═══════════════════════════════════════════════════════════════════════════
 //  This is the inner loop of EndCover (Subsection 3.3):
 //
 //      While (S.t.back() < H)  S.Extend(H, eps0)
-//      S.Refine(eps0)
+//      Q0.push(S.Refine(eps0))
 //
-//  Refine reads the whole scaffold and refines all of its stages, so it is
-//  applied once the scaffold has reached the horizon.
-//
-//  `target` is the contraction point used by Split() (the midpoint of the
-//  sub-box in EndCover mode, a boundary point in Boundary mode).
-inline Scaffold runScaffold(
-    const IVector& B,
+//  A new scaffold Init(B) is extended to H.  A scaffold split off by Split()
+//  already reaches H; it is a clone of the scaffold it came from, and is
+//  evaluated from its own E_0 first.  Refine reads the whole scaffold and
+//  refines all of its stages, so it is applied once the scaffold has reached
+//  the horizon.  The scaffolds Refine splits off are returned.
+inline std::vector<Scaffold> runScaffold(
+    Scaffold& S,
     IMap F,
-    const MiniScaffold& templateG,
     double eps0, double delta, int degree,
     double H,
-    int method, int stepBtype, int tubedegree, int debuglevel, int dim,
-    const std::vector<double>& target)
+    int method, int stepBtype, int tubedegree, int debuglevel, int dim)
 {
-    MiniScaffold G = templateG;
-    if (!G.E.empty()) G.E[0] = B;
-    if (!G.F.empty()) G.F[0] = B;
-
-    Scaffold S = {{0.0}, {B}, {B}, {G}};
-
     // The doubleton carried along the scaffold.  Extend advances it one step
     // per stage and Refine walks it again whenever Split or Bisect changes
     // what the scaffold has to enclose, so from E_0 to E_m the propagation
     // goes through a single doubleton and is never re-enclosed in a box.
     SolutionChain chain(F, degree, S.E[0], stepBtype);
 
-    //  While (S.T < H)  S.Extend(H, eps0)
-    ExtendToHorizon(F, S, chain, eps0, delta, degree, H, stepBtype,
-                    tubedegree, dim, debuglevel);
+    if (S.m() == 0) {
+        //  While (S.T < H)  S.Extend(H, eps0)
+        ExtendToHorizon(F, S, chain, eps0, delta, degree, H, stepBtype,
+                        tubedegree, dim, debuglevel);
+    } else if (!Reevaluate(S, F, chain, eps0, degree, stepBtype, tubedegree,
+                           dim, debuglevel) && debuglevel >= progress::REFINE) {
+        progress::report("    split-off scaffold evaluated: " + std::to_string(S.m())
+                         + " stages, wmax(E_0)=" + progress::sci(wmax(S.E[0]))
+                         + " wmax(E_m)=" + progress::sci(wmax(S.E.back())));
+    }
 
     for (int d = 0; d < S.E.back().dimension(); ++d) {
         if (!std::isfinite(S.E.back()[d].leftBound()) ||
@@ -69,156 +68,39 @@ inline Scaffold runScaffold(
             throw std::runtime_error("runScaffold: non-finite enclosure");
     }
 
-    //  S.Refine(eps0)
-    Refine(S, dim, F, chain, method, stepBtype, degree, eps0,
-           tubedegree, debuglevel, target);
-    return S;
+    //  Q0.push(S.Refine(eps0))
+    return Refine(S, dim, F, chain, method, stepBtype, degree, eps0,
+                  tubedegree, debuglevel);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-//  TwoDimEncAlgo  --  Boundary mode, n = 2 (the four edges of B0)
+//  BoundaryCover  --  Boundary mode: EndCover on each face of B0
 // ═══════════════════════════════════════════════════════════════════════════
-inline void TwoDimEncAlgo(
-    CoverResult& Sdata,
-    IMap F, Scaffold& S,
-    double eps0, double delta, int degree,
-    double H,
-    int method, int stepBtype, int tubedegree, int debuglevel, int dim,
-    bool verbose = true)
+//  The faces are taken in the order x_1 = lo, x_1 = hi, x_2 = lo, ...  Each
+//  face is a box of B0 with one coordinate fixed, and EndCover splits it
+//  along its other coordinates.
+inline void BoundaryCover(CoverResult& Sdata, const IVector& B0,
+                          const MiniScaffold& G0, const endcover::ScaffoldRun& run,
+                          int debuglevel, bool verbose = true)
 {
-    IVector Sbound(dim);
-    bool hasBound = false;
-    const int    maxDepth = 60;
-    const double minWidth = 0.0;
-
-    using MkTgt = std::function<std::vector<double>(const IVector&)>;
-    std::function<void(int, interval, int, double, double, MkTgt, int)> processEdge;
-
-    processEdge = [&](int fixedDim, interval fixedVal, int varDim,
-                      double a, double b, MkTgt makeTarget, int depth) {
-        if (!(a < b)) return;
-        double cur = a;
-        while (cur < b) {
-            IVector edgeBox = S.E[0];
-            edgeBox[fixedDim] = fixedVal;
-            edgeBox[varDim]   = interval(cur, b);
-            std::vector<double> tgt = makeTarget(edgeBox);
-            try {
-                Scaffold st = runScaffold(edgeBox, F, S.G[0],
-                                          eps0, delta, degree, H,
-                                          method, stepBtype, tubedegree, debuglevel, dim, tgt);
-                Sdata.E0.push_back(st.E[0]);
-                Sdata.C.push_back(st.E.back());
-                hasBound = hasBound ? (Sbound = hullBox(Sbound, st.E.back()), true)
-                                    : (Sbound = st.E.back(), true);
-
-                double nxt = st.E[0][varDim].rightBound();
-                if (debuglevel >= progress::SUBBOX)
-                    progress::report("edge x" + std::to_string(fixedDim + 1) + "="
-                                     + progress::num(fixedVal.leftBound())
-                                     + ": covered x" + std::to_string(varDim + 1) + " in ["
-                                     + progress::num(cur) + ", " + progress::num(nxt) + "] of ["
-                                     + progress::num(a) + ", " + progress::num(b) + "]"
-                                     + "  wmax(E_m)=" + progress::sci(wmax(st.E.back())));
-                cur = (nxt > cur) ? nxt : (cur + b) / 2.0;
-            } catch (const std::exception& e) {
-                if (debuglevel >= progress::SUBBOX)
-                    progress::report("edge x" + std::to_string(fixedDim + 1) + "="
-                                     + progress::num(fixedVal.leftBound())
-                                     + ": segment [" + progress::num(cur) + ", " + progress::num(b)
-                                     + "] failed (" + e.what() + "), halving it");
-                if ((b - cur) <= minWidth || depth >= maxDepth) {
-                    IVector pt = edgeBox;
-                    pt[varDim] = interval(cur, cur);
-                    try {
-                        Scaffold st = runScaffold(pt, F, S.G[0],
-                                                  eps0, delta, degree, H,
-                                                  method, stepBtype, tubedegree, debuglevel, dim,
-                                                  makeTarget(pt));
-                        Sdata.E0.push_back(st.E[0]);
-                        Sdata.C.push_back(st.E.back());
-                        hasBound = hasBound ? (Sbound = hullBox(Sbound, st.E.back()), true)
-                                            : (Sbound = st.E.back(), true);
-                        cur = b;
-                        continue;
-                    } catch (...) {
-                        throw std::runtime_error(
-                            std::string("TwoDimEncAlgo: edge segment [") +
-                            std::to_string(cur) + "," + std::to_string(b) + "] failed: " + e.what());
-                    }
-                }
-                double mid = (cur + b) / 2.0;
-                processEdge(fixedDim, fixedVal, varDim, cur, mid, makeTarget, depth + 1);
-                processEdge(fixedDim, fixedVal, varDim, mid, b,   makeTarget, depth + 1);
-                return;
-            }
-        }
-    };
-
-    const double xL = S.E[0][0].leftBound(),  xR = S.E[0][0].rightBound();
-    const double yL = S.E[0][1].leftBound(),  yR = S.E[0][1].rightBound();
-
-    processEdge(0, interval(xL, xL), 1, yL, yR,
-        [&](const IVector& box){ return std::vector<double>{box[0].leftBound(),  box[1].leftBound()}; }, 0);
-    if (verbose) std::cout << "  [Boundary 2D] left edge done\n";
-
-    processEdge(0, interval(xR, xR), 1, yL, yR,
-        [&](const IVector& box){ return std::vector<double>{box[0].rightBound(), box[1].leftBound()}; }, 0);
-    if (verbose) std::cout << "  [Boundary 2D] right edge done\n";
-
-    processEdge(1, interval(yR, yR), 0, xL, xR,
-        [&](const IVector& box){ return std::vector<double>{box[0].leftBound(),  box[1].rightBound()}; }, 0);
-    if (verbose) std::cout << "  [Boundary 2D] top edge done\n";
-
-    processEdge(1, interval(yL, yL), 0, xL, xR,
-        [&](const IVector& box){ return std::vector<double>{box[0].leftBound(),  box[1].leftBound()}; }, 0);
-    if (verbose) std::cout << "  [Boundary 2D] bottom edge done\n";
-
-    Sdata.hull = hasBound ? Sbound : S.E[0];
-}
-
-// ═══════════════════════════════════════════════════════════════════════════
-//  ThreeDimEncAlgo  --  Boundary mode, n >= 3 (EndCover applied to each face)
-// ═══════════════════════════════════════════════════════════════════════════
-inline void ThreeDimEncAlgo(
-    CoverResult& Sdata,
-    IMap F, const Scaffold& S,
-    double eps0, double delta, int degree,
-    double H,
-    int method, int stepBtype, int tubedegree, int debuglevel, int dim,
-    bool verbose = true)
-{
-    IVector Sbound(dim);
-    bool hasBound = false;
-
-    auto endEnc = [&](const IVector& B, double epsLocal,
-                      const std::vector<double>& p, double Hlocal)
-        -> std::pair<IVector, IVector>
-    {
-        Scaffold st = runScaffold(B, F, S.G[0],
-                                  epsLocal, delta, degree, Hlocal,
-                                  method, stepBtype, tubedegree, debuglevel, dim, p);
-        Sdata.E0.push_back(B);
-        const IVector& olB = st.E.back();
-        Sdata.C.push_back(olB);
-        hasBound = hasBound ? (Sbound = hullBox(Sbound, olB), true) : (Sbound = olB, true);
-        return {st.E.front(), olB};
-    };
-
-    const IVector& B0 = S.E[0];
+    const int dim = B0.dimension();
     for (int fixDim = 0; fixDim < dim; ++fixDim) {
         for (int side = 0; side < 2; ++side) {
             IVector face = B0;
-            double fv = side == 0 ? B0[fixDim].leftBound() : B0[fixDim].rightBound();
+            const double fv = side == 0 ? B0[fixDim].leftBound() : B0[fixDim].rightBound();
             face[fixDim] = interval(fv, fv);
+            const std::string name = "face x" + std::to_string(fixDim + 1) + "=" + progress::num(fv);
+            if (debuglevel >= progress::SUBBOX) progress::report(name);
+            endcover::EndCoverResult res = endcover::EndCover(face, G0, run, 2000000, debuglevel);
+            Sdata.C.insert(Sdata.C.end(), res.cover.begin(), res.cover.end());
+            Sdata.E0.insert(Sdata.E0.end(), res.initBoxes.begin(), res.initBoxes.end());
             if (verbose)
-                std::cout << "  [Boundary nD] face dim=" << fixDim << " side=" << side << "\n";
-            if (debuglevel >= progress::SUBBOX)
-                progress::report("face x" + std::to_string(fixDim + 1) + "=" + progress::num(fv));
-            endcover::EndCover(face, eps0, H, endEnc, 2000000, endcover::COVER_ALL, debuglevel);
+                std::cout << "  [Boundary] " << name << ": " << res.cover.size() << " boxes\n";
         }
     }
-    Sdata.hull = hasBound ? Sbound : B0;
+    Sdata.hull = B0;
+    for (size_t i = 0; i < Sdata.C.size(); ++i)
+        Sdata.hull = (i == 0) ? Sdata.C[0] : hullBox(Sdata.hull, Sdata.C[i]);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════

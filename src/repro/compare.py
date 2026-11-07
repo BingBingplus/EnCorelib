@@ -5,7 +5,7 @@
     python src/repro/compare.py
 
 Reads repro/out/table2.txt (what this code produced) and
-src/repro/table2_paper.txt (the printed table, transcribed) and reports, for
+repro/table2_paper.txt (the printed table, transcribed) and reports, for
 every cell present in both, whether B1, rho and #(C) agree.
 
 Sampling a few examples is enough to see whether the build reproduces the
@@ -17,8 +17,9 @@ import re
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-OURS = os.path.join(HERE, "out", "table2.txt")
-PAPER = os.path.join(HERE, "table2_paper.txt")
+REPRO = os.path.join(HERE, "..", "..", "repro")
+OURS = os.path.join(REPRO, "out", "table2.txt")
+PAPER = os.path.join(REPRO, "table2_paper.txt")
 
 B1 = r"\(.*?\) \+- \(.*?\)"
 PAPER_ROW = re.compile(r"^(Eg\d)\s+(\S+)\s+Ours\(([\d.]+)\)\s+([\d.]+)\s+(" + B1 + r")\s+(\S+)\s+(\S+)\s+(\S+)")
@@ -81,7 +82,7 @@ def main():
     print("%d of %d compared cells reproduce the printed table exactly."
           % (agree, len(shared)))
     if agree != len(shared):
-        print("Cells marked DIFF: see the note at the bottom of src/repro/table2_paper.txt,")
+        print("Cells marked DIFF: see the note at the bottom of repro/table2_paper.txt,")
         print("which lists the entries of the printed table that are inconsistent with")
         print("their own rho column.")
     return 0

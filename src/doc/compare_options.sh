@@ -1,27 +1,29 @@
 #!/usr/bin/env bash
 # ===========================================================================
-#  doc/compare_options.sh  --  the measurements behind section 6 of the user
+#  src/doc/compare_options.sh  --  the measurements behind section 6 of the user
 #                               guide ("Choosing the options")
 #
-#      bash doc/compare_options.sh              one run at a time
-#      JOBS=4 bash doc/compare_options.sh       four runs at a time
-#      DRY=1 bash doc/compare_options.sh        list the runs, run nothing
-#      ONLY=combo bash doc/compare_options.sh   only the runs whose tag starts so
-#                                               (the guide's last table, one at a time)
-#      python3 doc/make_tables.py               the LaTeX tables of section 6
+#      bash src/doc/compare_options.sh              one run at a time
+#      JOBS=6 bash src/doc/compare_options.sh       six runs at a time
+#      DRY=1 bash src/doc/compare_options.sh        list the runs, run nothing
+#      ONLY=combo bash src/doc/compare_options.sh   only the runs whose tag starts so
+#                                               (the guide's last table, two at a time)
+#      LIMIT=1200 bash src/doc/compare_options.sh   stop each run after 1200 s (default 600)
+#      python3 src/doc/make_tables.py               the LaTeX tables of section 6
 #
 #  Each of the six problems of Table 1 is run at its longer horizon with one
 #  option changed at a time from the defaults (mode=0 method=0 stepB=0
 #  tubedegree=0 order=20).  Lorenz is also run to T=5 with every stepB, and
 #  every problem once more with method=2 and stepB=3 together.
 #  Every run writes doc/out/options/<tag>.out (standard output) and .err.
-#  One run at a time takes about an hour and a half.
+#  A run still going after LIMIT seconds is stopped, and its .out file ends
+#  with the line "stopped after LIMIT s".
 # ===========================================================================
 set -u
 
-cd "$(dirname "$0")/.." || exit 1
-make --no-print-directory -s EnCorelib >/dev/null || { echo "build first: make" >&2; exit 1; }
-BIN=$PWD/EnCorelib
+cd "$(dirname "$0")/../.." || exit 1
+make --no-print-directory -s EndCorelib >/dev/null || { echo "build first: make" >&2; exit 1; }
+BIN=$PWD/EndCorelib
 OUT=doc/out/options
 mkdir -p "$OUT"
 
@@ -48,13 +50,13 @@ jobs_list() {
     job "mode1_${e}_e0.1" 1 0 0 0 $e 0.1 20
   done
   for o in 10 15 30; do
-    job "order_eg1_e0.1_o$o" 0 0 0 0 eg1 0.1 $o
+    job "order_eg1_e0.5_o$o" 0 0 0 0 eg1 0.5 $o
     job "order_eg5_e0.5_o$o" 0 0 0 0 eg5 0.5 $o
-    job "order_eg6_e0.1_o$o" 0 0 0 0 eg6 0.1 $o
+    job "order_eg6_e0.5_o$o" 0 0 0 0 eg6 0.5 $o
   done
   for s in 0 1 2 3; do job "lorenzT5_s$s" 0 0 $s 0 eg5 1.0 20 5; done
   # the two faster settings together, method=2 and stepB=3, next to the
-  # settings of the example files; meant to be run one at a time (JOBS=1)
+  # settings of the example files; run two at a time for the guide (JOBS=2)
   for e in eg1 eg2 eg3 eg4 eg5 eg6; do
     job "combo0_${e}_e0.1" 0 0 0 0 $e 0.1 20
     job "combo_${e}_e0.1"  0 2 3 0 $e 0.1 20
@@ -68,14 +70,18 @@ selected() { if [ -n "${ONLY:-}" ]; then grep "^${ONLY}"; else cat; fi; }
 
 if [ "${DRY:-0}" = "1" ]; then jobs_list | selected; exit 0; fi
 
+LIMIT=${LIMIT:-600}
+
 run_one() {
   set -f
-  local tag=${1%%|*} args=${1#*|}
-  "$BIN" $args > "$OUT/$tag.out" 2> "$OUT/$tag.err"
-  echo "  $tag  exit=$?"
+  local tag=${1%%|*} args=${1#*|} rc
+  timeout "$LIMIT" "$BIN" $args > "$OUT/$tag.out" 2> "$OUT/$tag.err"
+  rc=$?
+  [ "$rc" -eq 124 ] && echo "stopped after $LIMIT s" >> "$OUT/$tag.out"
+  echo "  $tag  exit=$rc"
 }
 export -f run_one
-export BIN OUT
+export BIN OUT LIMIT
 
 jobs_list | selected | tr '\n' '\0' | xargs -0 -P "${JOBS:-1}" -I{} bash -c 'run_one "$1"' _ {}
-echo "done; now:  python3 doc/make_tables.py"
+echo "done; now:  python3 src/doc/make_tables.py"

@@ -22,10 +22,10 @@
 # ===========================================================================
 set -u
 
-cd "$(dirname "$0")/.." || exit 1
-BIN=./EnCorelib
-[ -x "$BIN" ] || BIN=./EnCorelib.exe
-[ -x "$BIN" ] || BIN=./bin/EnCorelib.exe
+cd "$(dirname "$0")/../.." || exit 1
+BIN=./EndCorelib
+[ -x "$BIN" ] || BIN=./EndCorelib.exe
+[ -x "$BIN" ] || BIN=./bin/EndCorelib.exe
 if [ ! -x "$BIN" ]; then echo "build first (or use bin/):  make" >&2; exit 1; fi
 
 EPS=${EPS:-0.1}

@@ -4,7 +4,7 @@
 #
 #  The paper guarantees  End(B0,H) subset Union(C).  This script tests that
 #  guarantee from the outside: it takes a grid of sample points of B0,
-#  integrates each of them separately with ./Encoretraj (a plain validated
+#  integrates each of them separately with ./EndCoretraj (a plain validated
 #  integration), and
 #  checks that every resulting enclosure lies inside some box of C.
 #
@@ -14,21 +14,21 @@
 #      bash src/repro/verify_cover.sh eg1 eg5
 #      GRID=7 EPS=0.1 bash src/repro/verify_cover.sh eg2
 #
-#  Requires:  make          (./EnCorelib)
-#             make Encoretraj  (./Encoretraj)
+#  Requires:  make          (./EndCorelib)
+#             make EndCoretraj  (./EndCoretraj)
 #             python3
 # ===========================================================================
 set -u
 
-cd "$(dirname "$0")/.." || exit 1
-BIN=./EnCorelib;   [ -x "$BIN" ]  || BIN=./EnCorelib.exe
-[ -x "$BIN" ]   || BIN=./bin/EnCorelib.exe
-TRAJ=./Encoretraj; [ -x "$TRAJ" ] || TRAJ=./Encoretraj.exe
-[ -x "$TRAJ" ]  || TRAJ=./bin/Encoretraj.exe
+cd "$(dirname "$0")/../.." || exit 1
+BIN=./EndCorelib;   [ -x "$BIN" ]  || BIN=./EndCorelib.exe
+[ -x "$BIN" ]   || BIN=./bin/EndCorelib.exe
+TRAJ=./EndCoretraj; [ -x "$TRAJ" ] || TRAJ=./EndCoretraj.exe
+[ -x "$TRAJ" ]  || TRAJ=./bin/EndCoretraj.exe
 PY=${PYTHON:-python3}
 command -v "$PY" >/dev/null 2>&1 || PY=python
 for f in "$BIN" "$TRAJ"; do
-  [ -x "$f" ] || { echo "build first (or use bin/):  make && make Encoretraj" >&2; exit 1; }
+  [ -x "$f" ] || { echo "build first (or use bin/):  make && make EndCoretraj" >&2; exit 1; }
 done
 
 GRID=${GRID:-4}          # samples per coordinate

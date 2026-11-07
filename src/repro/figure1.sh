@@ -23,10 +23,10 @@
 # ===========================================================================
 set -u
 
-cd "$(dirname "$0")/.." || exit 1
-BIN=./EnCorelib
-[ -x "$BIN" ] || BIN=./EnCorelib.exe
-[ -x "$BIN" ] || BIN=./bin/EnCorelib.exe
+cd "$(dirname "$0")/../.." || exit 1
+BIN=./EndCorelib
+[ -x "$BIN" ] || BIN=./EndCorelib.exe
+[ -x "$BIN" ] || BIN=./bin/EndCorelib.exe
 if [ ! -x "$BIN" ]; then echo "build first (or use bin/):  make" >&2; exit 1; fi
 
 # --- bottom row: Eijgenraam ------------------------------------------------
@@ -38,8 +38,8 @@ for e in 0.3 0.1 0.02; do
 done
 
 # --- top row: pendulum -----------------------------------------------------
-TRAJ=./Encoretraj
-[ -x "$TRAJ" ] || TRAJ=./Encoretraj.exe
+TRAJ=./EndCoretraj
+[ -x "$TRAJ" ] || TRAJ=./EndCoretraj.exe
 if [ -x "$TRAJ" ]; then
   dir=repro/out/fig1/pendulum
   mkdir -p "$dir"
@@ -50,8 +50,8 @@ if [ -x "$TRAJ" ]; then
   echo "trajectories in $dir"
 else
   echo
-  echo "note: ./Encoretraj was not built, skipping the pendulum panel."
-  echo "      build it with:  make Encoretraj"
+  echo "note: ./EndCoretraj was not built, skipping the pendulum panel."
+  echo "      build it with:  make EndCoretraj"
 fi
 
 echo

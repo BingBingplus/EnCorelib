@@ -1,7 +1,7 @@
-EnCorelib  mode=EndCover  method=splitonly  stepB=lohner  tubedegree=1  order=20  n=2
+EndCorelib  mode=EndCover  method=splitonly  stepB=lohner  tubedegree=1  order=20  n=2
          f  = (2*x-2*x*y, -y+x*y)
          B0 = {[0.9, 1.1],[2.9, 3.1]}   H=5.5   eps=0.5
-time(ms)=17687
+time(ms)=40655
 Hull(T=5.500000)={[0.548817, 1.623060],[2.720057, 3.186808]}
 B1=(1.085939, 2.953433) +- (0.537122, 0.233375)
 wmax(B1)=1.074244

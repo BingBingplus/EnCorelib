@@ -12,8 +12,8 @@
 %  which is below the separatrix value 4, so the exact solution is periodic
 %  and x must stay bounded.  ode45 loses that.
 %
-%  Run tools/../repro/figure1.sh to produce the validated counterpart, then
-%  tools/plot_pendulum.py (or load the traj_y*.txt files here).
+%  Run src/repro/figure1.sh to produce the validated counterpart, then
+%  src/tools/plot_pendulum.py (or load the traj_y*.txt files here).
 % =========================================================================
 
 f  = @(t, u) [u(2); -sin(u(1))];
@@ -31,8 +31,8 @@ xlabel('x'); ylabel('y');
 title('ode45, default tolerances');
 legend('Location', 'best');
 
-% Overlay the validated enclosures, if repro/figure1.sh has been run.
-d = fullfile(fileparts(mfilename('fullpath')), '..', 'repro', 'out', 'fig1', 'pendulum');
+% Overlay the validated enclosures, if src/repro/figure1.sh has been run.
+d = fullfile(fileparts(mfilename('fullpath')), '..', '..', 'repro', 'out', 'fig1', 'pendulum');
 if isfolder(d)
     figure('Color', 'w'); hold on; grid on
     for k = 1:numel(y0)
@@ -45,6 +45,6 @@ if isfolder(d)
              'DisplayName', sprintf('y(0) = %g', y0(k)));
     end
     xlabel('x'); ylabel('y');
-    title('validated enclosures (Encoretraj)');
+    title('validated enclosures (EndCoretraj)');
     legend('Location', 'best');
 end

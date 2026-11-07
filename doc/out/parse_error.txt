@@ -1,4 +1,4 @@
-$ ./EnCorelib 1 0 0 0 0 2 x y y "-sin(x)-0.2*Y" 0.1 20 10 0  0.9 1.1  -0.1 0.1
+$ ./EndCorelib 1 0 0 0 0 2 x y y "-sin(x)-0.2*Y" 0.1 20 10 0  0.9 1.1  -0.1 0.1
 Cannot read the right-hand side var:x,y;fun:y,-0.2*Y-sin(x);
 undefined symbol 'Y' in the expression!
 If this is a numerical constant in scientific notation please replace it by a parameter.

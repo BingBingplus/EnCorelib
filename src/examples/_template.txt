@@ -18,7 +18,7 @@
 #                 3=+every stage (all on standard error)
 #
 #  Every field can be overridden on the command line, e.g.
-#    make run EG=examples/eg1Volterra.mk eps=0.1 T=5.5 method=0
+#    make run EG=src/examples/eg1Volterra.mk eps=0.1 T=5.5 method=0
 #
 #  Writing ff
 #    Use + - * / ^ and parentheses, the functions sin cos exp log sqrt sqr

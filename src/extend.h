@@ -32,7 +32,7 @@
 #include "progress.h"
 
 // Reaching this many stages means the step sizes have collapsed; the box is
-// subdivided instead.
+// split instead.
 static constexpr int MAX_STAGES = 20000;
 
 // "<what> at t=<t> (H=<H>)": failures say how far the scaffold got.
@@ -193,7 +193,7 @@ inline void ExtendToHorizon(IMap f, Scaffold& S, SolutionChain& chain,
 // ---------------------------------------------------------------------------
 //  RebuildScaffold : throw the stage grid away and lay it out again
 // ---------------------------------------------------------------------------
-//  Split shrinks E_0, and a smaller box admits longer steps.  The grid is
+//  Split halves E_0, and a smaller box admits longer steps.  The grid is
 //  chosen afresh from the new E_0; the scaffold keeps the final time it had.
 inline void RebuildScaffold(IMap f, Scaffold& S, SolutionChain& chain,
                             double eps0, double delta, int degree,

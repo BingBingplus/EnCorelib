@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Draw the two figures of the user guide from the runs of doc/run_examples.sh.
+"""Draw the two figures of the user guide from the runs of src/doc/run_examples.sh.
 
-    python3 doc/make_figures.py
+    python3 src/doc/make_figures.py
 
 reads   doc/out/eijgenraam/E1.txt         (src/examples/fig1Eijgenraam.mk)
         doc/out/eg1_eps0.1/E0.txt, E1.txt  (Eg1 at eps = 0.1, H = 4)
@@ -14,6 +14,7 @@ import os
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+DOC = os.path.join(HERE, "..", "..", "doc")
 sys.path.insert(0, os.path.join(HERE, "..", "tools"))
 from boxio import read_boxes  # noqa: E402
 
@@ -68,7 +69,7 @@ def frame(ax, B, frac=0.06):
 
 
 def eijgenraam(outdir):
-    C = read_boxes(os.path.join(HERE, "out", "eijgenraam", "E1.txt"))
+    C = read_boxes(os.path.join(DOC, "out", "eijgenraam", "E1.txt"))
     B1 = hull(C)
     fig, ax = plt.subplots(figsize=(4.0, 2.6))
     draw_boxes(ax, C)
@@ -85,8 +86,8 @@ def eijgenraam(outdir):
 
 
 def eg1(outdir):
-    E0 = read_boxes(os.path.join(HERE, "out", "eg1_eps0.1", "E0.txt"))
-    C = read_boxes(os.path.join(HERE, "out", "eg1_eps0.1", "E1.txt"))
+    E0 = read_boxes(os.path.join(DOC, "out", "eg1_eps0.1", "E0.txt"))
+    C = read_boxes(os.path.join(DOC, "out", "eg1_eps0.1", "E1.txt"))
     fig, (a0, a1) = plt.subplots(1, 2, figsize=(6.2, 2.7))
     draw_boxes(a0, E0)
     frame(a0, hull(E0))
@@ -99,7 +100,7 @@ def eg1(outdir):
 
 
 def main():
-    outdir = os.path.join(HERE, "fig")
+    outdir = os.path.join(DOC, "fig")
     os.makedirs(outdir, exist_ok=True)
     eijgenraam(outdir)
     eg1(outdir)

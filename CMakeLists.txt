@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(EnCorelib CXX)
+project(EndCorelib CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -77,7 +77,7 @@ endif()
 # -frounding-math is REQUIRED: without it the compiler may assume the
 # default rounding mode, which breaks the directed rounding that every
 # interval bound in this program relies on.
-function(EnCorelib_configure tgt)
+function(EndCorelib_configure tgt)
     target_link_libraries(${tgt} PRIVATE capd_import)
     target_compile_options(${tgt} PRIVATE -Wall -O2 -frounding-math)
     if(USE_SYMENGINE)
@@ -87,20 +87,20 @@ function(EnCorelib_configure tgt)
     endif()
 endfunction()
 
-add_executable(EnCorelib src/EnCorelib.cpp)
-EnCorelib_configure(EnCorelib)
+add_executable(EndCorelib src/EndCorelib.cpp)
+EndCorelib_configure(EndCorelib)
 
 # Validated trajectory printer used for Figure 1 (top row).
-add_executable(Encoretraj src/tools/trajectory.cpp)
-EnCorelib_configure(Encoretraj)
+add_executable(EndCoretraj src/tools/trajectory.cpp)
+EndCorelib_configure(EndCoretraj)
 
 # CAPD (Cr-Lohner, r = 3) reference used for the CAPD rows of Table 2.
 add_executable(capdref src/repro/competitors/capd_compare.cpp)
-EnCorelib_configure(capdref)
+EndCorelib_configure(capdref)
 
 # Box-by-box check of a cover (src/repro/audit_cover.sh).
-add_executable(Encoreaudit src/tools/audit_cover.cpp)
-EnCorelib_configure(Encoreaudit)
+add_executable(EndCoreaudit src/tools/audit_cover.cpp)
+EndCorelib_configure(EndCoreaudit)
 
 # ────────────────────────────────────────────────────────────────────────────
 #  Self-test:  ctest    (or: bash src/repro/check.sh)
@@ -109,12 +109,15 @@ enable_testing()
 add_test(NAME selftest
          COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/src/repro/check.sh
          WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+set_tests_properties(selftest PROPERTIES
+         ENVIRONMENT "ENDCORELIB=$<TARGET_FILE:EndCorelib>")
 
 # ────────────────────────────────────────────────────────────────────────────
 #  Install
 # ────────────────────────────────────────────────────────────────────────────
-install(TARGETS EnCorelib Encoretraj capdref Encoreaudit DESTINATION bin)
+install(TARGETS EndCorelib EndCoretraj capdref EndCoreaudit DESTINATION bin)
 install(FILES
-    src/types.h src/progress.h src/symparse.h src/stepAB.h src/extend.h src/refine.h src/endcover.h src/boundary.h
-    DESTINATION include/EnCorelib)
-install(DIRECTORY src/examples/ DESTINATION share/EnCorelib/examples)
+    src/types.h src/progress.h src/symparse.h src/stepAB.h
+    src/extend.h src/refine.h src/endcover.h src/boundary.h
+    DESTINATION include/EndCorelib)
+install(DIRECTORY src/examples/ DESTINATION share/EndCorelib/examples)

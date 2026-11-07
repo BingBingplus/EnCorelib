@@ -345,7 +345,7 @@ public:
     SolutionChain(const SolutionChain&)            = delete;
     SolutionChain& operator=(const SolutionChain&) = delete;
 
-    // Start the chain again at E_0, at time 0.  Refine's Split shrinks E_0,
+    // Start the chain again at E_0, at time 0.  Refine's Split halves E_0,
     // and the scaffold is then evaluated once more from the smaller box.
     void restart(const IVector& E0) {
         m_hull       = E0;

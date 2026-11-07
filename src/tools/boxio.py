@@ -1,4 +1,4 @@
-"""Reader for the box files written by EnCorelib (E0.txt, E1.txt, E_0.txt, ...).
+"""Reader for the box files written by EndCorelib (E0.txt, E1.txt, E_0.txt, ...).
 
 A box file has one box per line:
 

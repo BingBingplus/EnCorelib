@@ -1,9 +1,9 @@
-// moore_direct_test.cpp  --  standalone diagnostic (not part of EnCorelib)
+// moore_direct_test.cpp  --  standalone diagnostic (not part of EndCorelib)
 //
 // Moore's rotation example x' = y, y' = -x, propagated with one StepB
 // variant at a time from a single box, with the enclosure put back into an
 // axis-aligned box after every step.  This shows the wrapping effect that
-// EnCorelib avoids by carrying one doubleton along a scaffold
+// EndCorelib avoids by carrying one doubleton along a scaffold
 // (SolutionChain in stepAB.h).
 //
 // This program repeatedly applies ONE step method to a SINGLE box (no

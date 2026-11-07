@@ -13,18 +13,16 @@
 //          C.push(S.E.back())
 //      Return C
 //
-//  In this implementation the scaffold work for one sub-box is done by the
-//  caller-supplied callable `endEnc`, which returns the pair
+//  The scaffold work for one popped scaffold -- Extend to H, then Refine --
+//  is done by the caller-supplied callable `run` (runScaffold in boundary.h),
+//  which returns the scaffolds that Refine's Split() split off.  They are
+//  pushed on the queue, and S.E.back() goes into C.
 //
-//      (ulB, olB) = (S.E[0] after Refine,  S.E.back())
+//  When the scaffold of a sub-box cannot be carried to the horizon, its
+//  initial box is split in two by halving a longest side, and both halves go
+//  back on the queue as new scaffolds.
 //
-//  Refine's Split() shrinks S.E[0]; whenever ulB is a proper sub-box of the
-//  box B we handed in, the complement of ulB inside B has not been covered,
-//  so B is subdivided into 2^n children and they are pushed back on the
-//  queue.  Those children are exactly the "split-off scaffolds returned by
-//  S.Refine(eps0)" of the pseudo-code above.
-//
-//  With debug >= 1 every processed sub-box is reported on one line; see
+//  With debug >= 1 every processed scaffold is reported on one line; see
 //  progress.h.
 // ===========================================================================
 
@@ -37,77 +35,11 @@
 
 namespace endcover {
 
-// Raised when the scaffold run fails on a sub-box of B0 that is a single
-// point.  Subdividing cannot help then: the solution through that point
-// cannot be enclosed up to the horizon.
-struct PointFailure : std::runtime_error {
+// Raised when the scaffold of a sub-box of B0 cannot be carried to the
+// horizon and the sub-box cannot be halved in double precision.
+struct PrecisionLimit : std::runtime_error {
     using std::runtime_error::runtime_error;
 };
-
-// ---------------------------------------------------------------------------
-//  Which boxes end up in C
-// ---------------------------------------------------------------------------
-//   COVER_ALL    every processed box contributes its end-enclosure.  This is
-//                the setting used for the experiments in the paper.
-//   COVER_LEAVES only boxes that were resolved without splitting contribute;
-//                the result is the strict eps0-cover of equation (1.3), in
-//                which every box satisfies wmax <= eps0.
-enum CoverSet { COVER_ALL = 0, COVER_LEAVES = 1 };
-
-inline std::vector<double> midpoint_vec(const IVector& box) {
-    const int n = box.dimension();
-    std::vector<double> m(static_cast<size_t>(n));
-    for (int i = 0; i < n; ++i)
-        m[static_cast<size_t>(i)] = (box[i].leftBound() + box[i].rightBound()) / 2.0;
-    return m;
-}
-
-inline bool boxesEqual(const IVector& a, const IVector& b, double tol = 0.0) {
-    if (a.dimension() != b.dimension()) return false;
-    for (int i = 0; i < a.dimension(); ++i)
-        if (std::abs(a[i].leftBound()  - b[i].leftBound())  > tol ||
-            std::abs(a[i].rightBound() - b[i].rightBound()) > tol)
-            return false;
-    return true;
-}
-
-// Split a box into 2^d children by halving every coordinate that has
-// positive width (d of them).  Degenerate coordinates are left alone:
-// halving them would only produce duplicate children, which for a box with
-// a flat face -- Eijgenraam's example has y(0) = 0 -- multiplies the work
-// by 2 at every level of the subdivision without covering anything new.
-// If no coordinate can be split the box is a single point and the returned
-// vector is empty.
-inline std::vector<IVector> splitAllDims(const IVector& box) {
-    const int n = box.dimension();
-
-    std::vector<int> splitDims;
-    std::vector<double> a(static_cast<size_t>(n)), m(static_cast<size_t>(n)), b(static_cast<size_t>(n));
-    for (int i = 0; i < n; ++i) {
-        a[static_cast<size_t>(i)] = box[i].leftBound();
-        b[static_cast<size_t>(i)] = box[i].rightBound();
-        m[static_cast<size_t>(i)] = (a[static_cast<size_t>(i)] + b[static_cast<size_t>(i)]) / 2.0;
-        if (a[static_cast<size_t>(i)] < m[static_cast<size_t>(i)] &&
-            m[static_cast<size_t>(i)] < b[static_cast<size_t>(i)])
-            splitDims.push_back(i);
-    }
-    if (splitDims.empty()) return {};
-
-    const size_t count = static_cast<size_t>(1) << splitDims.size();
-    std::vector<IVector> out;
-    out.reserve(count);
-    for (size_t mask = 0; mask < count; ++mask) {
-        IVector child = box;
-        for (size_t k = 0; k < splitDims.size(); ++k) {
-            const int i = splitDims[k];
-            const bool upper = ((mask >> k) & 1u) != 0u;
-            child[i] = upper ? interval(m[static_cast<size_t>(i)], b[static_cast<size_t>(i)])
-                             : interval(a[static_cast<size_t>(i)], m[static_cast<size_t>(i)]);
-        }
-        out.push_back(child);
-    }
-    return out;
-}
 
 // The share of B0 that its sub-box B makes up, measured in the coordinates
 // in which B0 has positive width (all of B0 when B0 is a point).
@@ -122,39 +54,43 @@ inline double shareOf(const IVector& B, const IVector& B0) {
 
 struct EndCoverResult {
     std::vector<IVector> cover;      // C
-    std::vector<IVector> initBoxes;  // the sub-boxes of B0 that were integrated
+    std::vector<IVector> initBoxes;  // S.E[0] of the scaffold behind each box of C
 };
 
-// Signature of the per-box scaffold run:
-//   endEnc(B, eps0, m(B), H) -> (ulB, olB)
-using EndEncFn = std::function<std::pair<IVector, IVector>(
-    const IVector&, double, const std::vector<double>&, double)>;
+// Signature of the scaffold run:  run(S) brings S to the horizon, refines it
+// and returns the scaffolds Refine split off.
+using ScaffoldRun = std::function<std::vector<Scaffold>(Scaffold&)>;
 
-inline EndCoverResult EndCover(const IVector& B0, double eps0, double H,
-                               const EndEncFn& endEnc,
+//  B0          the initial box
+//  G0          the mini-scaffold every new scaffold starts from (Init)
+//  run         Extend and Refine, see above
+//  maxSplits   bound on the number of splits
+//  debuglevel  1 = one line per processed scaffold
+inline EndCoverResult EndCover(const IVector& B0, const MiniScaffold& G0,
+                               const ScaffoldRun& run,
                                int maxSplits  = 2000000,
-                               int coverSet   = COVER_ALL,
                                int debuglevel = 0) {
     if (maxSplits <= 0)
         throw std::invalid_argument("EndCover: maxSplits must be positive");
 
-    // The working queue of scaffolds.  `depth` is the number of
-    // subdivisions between B0 and the sub-box; it is only reported.
-    struct Pending { IVector box; int depth; };
-    std::vector<Pending> Q0 = {{B0, 0}};
+    // The working queue of scaffolds.  `depth` is the number of splits
+    // between B0 and the initial box of the scaffold; it is only reported.
+    struct Pending { Scaffold S; int depth; };
+    std::vector<Pending> Q0;
+    Q0.push_back({Init(B0, G0), 0});
     EndCoverResult result;
     result.cover.reserve(256);
     result.initBoxes.reserve(256);
-    int splits = 0;
+    long splits = 0;
 
-    long   runs = 0, nResolved = 0;
+    long   runs = 0;
     int    deepest = 0;
-    double done = 0.0;                  // share of B0 resolved so far
+    double done = 0.0;                  // share of B0 covered so far
 
-    // One line per processed sub-box, in columns under a header.
+    // One line per processed scaffold, in columns under a header.
     const auto col = progress::column;
-    auto subBoxReport = [&](int depth, const IVector& B, const std::string& wEnd,
-                            const std::string& outcome) {
+    auto report = [&](int depth, const IVector& B, const std::string& wEnd,
+                      const std::string& outcome) {
         progress::report(col(std::to_string(runs), 5) + col(std::to_string(depth), 6)
                          + col(progress::sci(wmax(B)), 9) + col(wEnd, 10)
                          + col(std::to_string(Q0.size()), 6)
@@ -166,63 +102,55 @@ inline EndCoverResult EndCover(const IVector& B0, double eps0, double H,
                          + "  outcome");
 
     while (!Q0.empty()) {
-        const IVector B     = Q0.back().box;
-        const int     depth = Q0.back().depth;
+        Pending P = std::move(Q0.back());
         Q0.pop_back();
+        const IVector B = P.S.E[0];
         ++runs;
-        deepest = std::max(deepest, depth);
+        deepest = std::max(deepest, P.depth);
 
-        const std::vector<double> mid = midpoint_vec(B);
-        std::vector<IVector> children;
         std::string outcome, wEnd = "-";   // for the progress report
         try {
-            auto [ulB, olB] = endEnc(B, eps0, mid, H);
-            const bool resolved = boxesEqual(ulB, B);
-            // A box that cannot be subdivided any further (B is a point) is
-            // treated as resolved: dropping it would break the cover.
-            if (!resolved) children = splitAllDims(B);
+            std::vector<Scaffold> Qout = run(P.S);
+            const int k = static_cast<int>(Qout.size());
+            // The j-th split-off is j splits below B; S.E[0] is k splits below.
+            for (int j = 0; j < k; ++j)
+                Q0.push_back({std::move(Qout[static_cast<size_t>(j)]), P.depth + j + 1});
+            splits += k;
 
-            if (resolved || children.empty() || coverSet == COVER_ALL) {
-                result.cover.push_back(olB);
-                result.initBoxes.push_back(ulB);
-            }
-            if (children.empty()) {
-                ++nResolved;
-                done += shareOf(B, B0);
-                outcome = "resolved";
-            } else {
-                // Refine had to Split: the rest of B is still uncovered.
-                outcome = "split, E_0 -> " + progress::sci(wmax(ulB));
-            }
-            wEnd = progress::sci(wmax(olB));
+            result.cover.push_back(P.S.E.back());
+            result.initBoxes.push_back(P.S.E[0]);
+            done += shareOf(P.S.E[0], B0);
+            deepest = std::max(deepest, P.depth + k);
+            wEnd = progress::sci(wmax(P.S.E.back()));
+            outcome = "resolved";
+            if (k > 0)
+                outcome += ", E_0 -> " + progress::sci(wmax(P.S.E[0])) + ", "
+                         + std::to_string(k) + " split off";
         } catch (const std::exception& ex) {
-            // The scaffold run failed (typically an enclosure blow-up).
-            // Do not drop B: subdivide and retry on the children.
-            children = splitAllDims(B);
-            outcome  = std::string("failed: ") + ex.what();
-            if (children.empty()) {
-                if (debuglevel >= progress::SUBBOX) subBoxReport(depth, B, wEnd, outcome);
-                throw PointFailure(std::string(ex.what())
-                    + "\nThe sub-box of B0 on which this happened is a single point"
-                      " (depth " + std::to_string(depth) + " of the subdivision),"
-                      "\nso subdividing B0 further cannot help: the solution through"
-                      " that point\ncannot be enclosed up to the horizon.");
+            // The scaffold could not be carried to the horizon: split B.
+            IVector lower, upper;
+            if (!halveLongestSide(B, lower, upper)) {
+                if (debuglevel >= progress::SUBBOX)
+                    report(P.depth, B, wEnd, std::string("stopped: ") + ex.what());
+                throw PrecisionLimit(std::string(ex.what())
+                    + "\nThe sub-box of B0 on which this happened (depth "
+                    + std::to_string(P.depth) + " of the subdivision) cannot be"
+                      " halved in double precision.");
             }
-            outcome += ", split into " + std::to_string(children.size());
+            Q0.push_back({Init(upper, G0), P.depth + 1});
+            Q0.push_back({Init(lower, G0), P.depth + 1});
+            ++splits;
+            outcome = std::string("split: ") + ex.what();
         }
 
-        if (!children.empty()) {
-            if (++splits > maxSplits)
-                throw std::runtime_error("EndCover: exceeded maxSplits");
-            for (const IVector& c : children) Q0.push_back({c, depth + 1});
-        }
-        if (debuglevel >= progress::SUBBOX) subBoxReport(depth, B, wEnd, outcome);
+        if (splits > maxSplits)
+            throw std::runtime_error("EndCover: exceeded maxSplits");
+        if (debuglevel >= progress::SUBBOX) report(P.depth, B, wEnd, outcome);
     }
 
     if (debuglevel >= progress::SUBBOX)
         progress::report("EndCover finished: " + std::to_string(runs)
-                         + (runs == 1 ? " sub-box" : " sub-boxes") + " processed, "
-                         + std::to_string(nResolved) + " resolved, deepest level "
+                         + (runs == 1 ? " scaffold" : " scaffolds") + " processed, deepest level "
                          + std::to_string(deepest) + ", #(C)=" + std::to_string(result.cover.size()));
     return result;
 }

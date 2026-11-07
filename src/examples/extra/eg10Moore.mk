@@ -18,11 +18,11 @@
 # doubleton / eps-cover with subdivision) avoids this blow-up.
 #
 # Run (from version_2026/):
-#   make run EG=src/examples/eg10Moore.mk           # EndCover mode (mode=0)
-#   make run EG=src/examples/eg10Moore.mk T=6.283185307179586   # 1 period
+#   make run EG=src/examples/extra/eg10Moore.mk           # EndCover mode (mode=0)
+#   make run EG=src/examples/extra/eg10Moore.mk T=6.283185307179586   # 1 period
 #
 # CLI format (for reference):
-#   ./EnCorelib output_mode mode method stepB tubedegree n vars... funs... eps order T debug lo1 hi1 ...
+#   ./EndCorelib output_mode mode method stepB tubedegree n vars... funs... eps order T debug lo1 hi1 ...
 # ══════════════════════════════════════════════════════════════════════════
 
 #── Problem ────────────────────────────────────────────────────────────────

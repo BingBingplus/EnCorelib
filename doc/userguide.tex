@@ -1,13 +1,13 @@
 % ===========================================================================
-%  EnCorelib user guide
+%  EndCorelib user guide
 %
 %  Build:   tectonic doc/userguide.tex       (or xelatex / lualatex / pdflatex,
 %                                             run twice, from inside doc/)
 %
 %  Every program output in this guide is read from doc/out/, which
-%  doc/run_examples.sh and doc/compare_options.sh regenerate from the code;
-%  the figures come from doc/make_figures.py and the tables of Section 6 from
-%  doc/make_tables.py.
+%  src/doc/run_examples.sh and src/doc/compare_options.sh regenerate from the code;
+%  the figures come from src/doc/make_figures.py and the tables of Section 6 from
+%  src/doc/make_tables.py.
 % ===========================================================================
 \documentclass[11pt,a4paper]{article}
 
@@ -45,7 +45,7 @@
 \captionsetup{font=small,labelfont=bf}
 \setlength{\parskip}{3pt}
 
-\title{EnCorelib user guide\\[4pt]
+\title{EndCorelib user guide\\[4pt]
        \large End covers for the initial value problem}
 \author{Bingwei Zhang \and Chee Yap}
 \date{November 2026}
@@ -56,10 +56,10 @@
 \tableofcontents
 
 % ---------------------------------------------------------------------------
-\section{What EnCorelib computes}
+\section{What EndCorelib computes}
 % ---------------------------------------------------------------------------
 
-EnCorelib takes an autonomous system of ordinary differential equations
+EndCorelib takes an autonomous system of ordinary differential equations
 \[
   x' = f(x), \qquad x \in \mathbb{R}^n,
 \]
@@ -74,13 +74,13 @@ of the end set. The left inclusion says that no solution starting in $B_0$ is
 lost. The right one holds because every box of $C$ is at most $\eps$ wide and
 contains a point of the end set. All arithmetic is interval arithmetic with
 directed rounding, so the inclusions hold for the boxes the program prints,
-rounding errors included. In one case the right inclusion can fail: when
-Refine cannot reach $\eps$ for a sub-box even after shrinking it to a single
-point, the wider box is kept, so that nothing is lost, and the program prints
-a note saying so.
+rounding errors included. If double precision runs out first, that is, if
+Refine has not reached $\eps$ when $E_0$ can no longer be halved, the wider
+box is kept, so that nothing is lost, and the program prints a note saying
+so.
 
 With most validated solvers you learn the width of the result after the run.
-Here $\eps$ is an input: EnCorelib subdivides $B_0$ until every piece has an
+Here $\eps$ is an input: EndCorelib subdivides $B_0$ until every piece has an
 end-enclosure at most $\eps$ wide, and $C$ is the set of these
 end-enclosures. The program also reports $B_1 = \BoxOp(C)$, the smallest box
 that contains the cover. Because every box of $C$ lies within $\eps$ of the
@@ -92,15 +92,15 @@ Eijgenraam's example $x' = 0$, $y' = x^2$ with $x(0) \in [-1,1]$ and
 $y(0) = 0$. At $H = 1$ the end set is the arc $y = x^2$, $|x| \le 1$. Every
 convex set that contains the arc also contains $(0,1)$, the midpoint of its
 two end points, although no solution comes near that point. The cover for
-$\eps = 0.1$ has 79 boxes and follows the arc.
+$\eps = 0.1$ has 40 boxes and follows the arc.
 
 \begin{figure}[htb]
   \centering
   \includegraphics[width=0.62\textwidth]{fig/eijgenraam.pdf}
-  \caption{Eijgenraam's example at $H=1$: the $0.1$-cover (79 boxes), the
+  \caption{Eijgenraam's example at $H=1$: the $0.1$-cover (40 boxes), the
     end set $y = x^2$ (black) and the bounding box $B_1$ of the cover
     (dashed). The point $(0,1)$ lies in $B_1$ and in every convex enclosure
-    of the arc. Data from \texttt{make run EG=examples/fig1Eijgenraam.mk}.}
+    of the arc. Data from \texttt{make run EG=src/examples/fig1Eijgenraam.mk}.}
   \label{fig:eij}
 \end{figure}
 
@@ -119,18 +119,19 @@ Everything runs in IEEE double precision.
 
 \begin{itemize}
   \item A C++17 compiler: g++ 9 or newer, or clang++ 10 or newer.
-  \item GNU make and bash, for the Makefile and the scripts in \file{repro/}
-        and \file{doc/}. CMake 3.16 or newer if you prefer the CMake build.
+  \item GNU make and bash, for the Makefile and the scripts in
+        \file{src/repro/} and \file{src/doc/}. CMake 3.16 or newer if you
+        prefer the CMake build.
   \item CAPD (\url{http://capd.ii.uj.edu.pl}), which supplies the interval
         arithmetic and the Taylor coefficients of $f$.
   \item Optional: SymEngine, which multiplies out the right-hand side before
         it is evaluated (Section~\ref{sec:form}); Python~3 with matplotlib for
-        the plots; MATLAB for \file{tools/pendulum_ode45.m} only.
+        the plots; MATLAB for \file{src/tools/pendulum_ode45.m} only.
 \end{itemize}
 
 On Windows, install Cygwin with the packages \texttt{gcc-g++}, \texttt{make},
 \texttt{cmake} and \texttt{git}, and type every command of this guide in a
-Cygwin login shell. Build EnCorelib in the same shell that built CAPD. Inside
+Cygwin login shell. Build EndCorelib in the same shell that built CAPD. Inside
 Cygwin the Windows path \verb|C:\Users\you\CAPD| is written
 \file{/cygdrive/c/Users/you/CAPD}.
 
@@ -148,9 +149,9 @@ make -j4
 This leaves \file{libcapd.a} in \file{~/CAPD/build}. Running
 \verb|make install| is optional.
 
-\subsection{Building EnCorelib}
+\subsection{Building EndCorelib}
 
-EnCorelib reads the location of CAPD from a file \file{config.mk} in its top
+EndCorelib reads the location of CAPD from a file \file{config.mk} in its top
 directory. Copy the template and change its one active line to the absolute
 path of the directory you cloned CAPD into (the one that contains
 \file{capdDynSys/} and \file{build/}):
@@ -166,12 +167,12 @@ or point at an installed CAPD with
 is on your \texttt{PATH}, a plain \texttt{make} finds it.
 
 Now run \texttt{make}. The first line it prints names the CAPD it uses and
-the last one is \texttt{Built EnCorelib}. If it says \texttt{CAPD not found},
+the last one is \texttt{Built EndCorelib}. If it says \texttt{CAPD not found},
 check that \file{build/libcapd.a} exists under the directory you gave. Three
-companion programs are built on request: \texttt{make Encoretraj}, a
+companion programs are built on request: \texttt{make EndCoretraj}, a
 validated trajectory printer used by \texttt{make verify};
 \texttt{make capdref}, the plain CAPD integrator behind the CAPD rows of the
-paper's Table~2; and \texttt{make Encoreaudit}, the box-by-box check of
+paper's Table~2; and \texttt{make EndCoreaudit}, the box-by-box check of
 Section~\ref{sec:repro}. \texttt{make tools} builds all three.
 
 There is also a CMake build:
@@ -189,14 +190,14 @@ round-to-nearest and break the directed rounding that every interval bound
 relies on.
 
 CAPD can be built with the interval type of the filib library, which its
-CMake build does by default, or with its own interval type. EnCorelib uses
+CMake build does by default, or with its own interval type. EndCorelib uses
 only operations that both provide and compiles against either.
 
 \subsection{Checking the build}
 
 \texttt{make check} runs 18 short computations and compares $B_1$, rounded to
 two decimals, and the number of boxes $\#(C)$ with stored values. It takes
-about twenty seconds and should end like this:
+about fifteen seconds and should end like this:
 \out[firstline=24]{out/check.txt}
 The stored values hold whether or not SymEngine was found
 (Section~\ref{sec:form} explains why that could matter).
@@ -207,7 +208,7 @@ The stored values hold whether or not SymEngine was found
 
 \subsection{An example from the paper}
 
-The directory \file{examples/} holds the test problems of the paper's
+The directory \file{src/examples/} holds the test problems of the paper's
 Table~1 as \file{.mk} files. Eg1 is the Lotka-Volterra system
 $x' = 2x(1-y)$, $y' = -y(1-x)$ from $B_0 = [0.9,1.1]\times[2.9,3.1]$, with
 $H = 4$ and $\eps = 1$ in the file:
@@ -216,7 +217,7 @@ In the examples of this guide a line that starts with \verb|$| is what was
 typed; the lines below it are what the program printed. Reading the output
 from the top:
 \begin{description}[font=\ttfamily\mdseries,leftmargin=2em,style=nextline]
-  \item[EnCorelib mode=\dots] the settings in force. The file says
+  \item[EndCorelib mode=\dots] the settings in force. The file says
         \texttt{tubedegree=0}, which selects the Euler tube, printed as
         \texttt{tubedegree=1}.
   \item[f =] the right-hand side in the form in which it is evaluated
@@ -233,8 +234,8 @@ from the top:
         the last number is the largest side among the boxes of $C$, which is
         at most $\eps$.
 \end{description}
-Here $C$ has 5 boxes, none wider than 0.552, and $B_1$ is 0.759 wide in $x$
-and 0.097 wide in $y$.
+Here $C$ has 2 boxes, none wider than 0.799, and $B_1$ is 0.932 wide in $x$
+and 0.133 wide in $y$.
 
 \subsection{The same run without make}
 
@@ -252,7 +253,7 @@ prints a short summary when it is called without arguments
 
 \begin{table}[htb]
 \centering\small
-\caption{The command-line arguments of \texttt{EnCorelib}, in order.}
+\caption{The command-line arguments of \texttt{EndCorelib}, in order.}
 \label{tab:args}
 \begin{tabular}{lp{0.7\textwidth}}
 \toprule
@@ -322,25 +323,23 @@ with 17 significant digits; line $k$ of \file{E0.txt} and line $k$ of
 tabs and named in its first line. Figure~\ref{fig:eg1} draws the two box
 files. To draw them yourself, run
 \begin{Verbatim}
-python3 tools/plot_boxes.py . --save cover.png
+python3 src/tools/plot_boxes.py . --save cover.png
 \end{Verbatim}
 in the directory that holds them.
 
 \begin{figure}[htb]
   \centering
   \includegraphics[width=\textwidth]{fig/eg1_cover.pdf}
-  \caption{Eg1 with $\eps = 0.1$ and $H = 4$. Left: the 85 sub-boxes of
-    $B_0$ in \file{E0.txt}. Right: the 85 boxes of the cover $C$ in
+  \caption{Eg1 with $\eps = 0.1$ and $H = 4$. Left: the 48 sub-boxes of
+    $B_0$ in \file{E0.txt}. Right: the 48 boxes of the cover $C$ in
     \file{E1.txt} and their bounding box $B_1$ (dashed).}
   \label{fig:eg1}
 \end{figure}
 
-All 85 boxes of \file{E0.txt} are 0.025 wide. Sixty-four of them tile $B_0$;
-they are the sub-boxes of depth 3, which Refine resolved. The other 21 sit in
-the middle of the sub-boxes of depths 0, 1 and 2: they are the boxes to which
-Refine shrank $E_0$ before EndCover split those sub-boxes, and they show up
-darker where they overlap the tiling. Their end-enclosures belong to $C$ as
-well.
+The 48 boxes of \file{E0.txt} tile $B_0$: 32 are squares of side 0.025, and
+16 are 0.05 wide in $x$ and 0.025 in $y$. Each is the $E_0$ of one scaffold,
+obtained from $B_0$ by \texttt{Split}, which halves a longest side, and line
+$k$ of \file{E1.txt} is its end-enclosure at $H$.
 
 % ---------------------------------------------------------------------------
 \section{A problem of your own}\label{sec:own}
@@ -350,13 +349,13 @@ well.
 
 Take the damped pendulum $x' = y$, $y' = -\sin x - 0.2\,y$ from the box
 $[0.9,1.1]\times[-0.1,0.1]$ up to $H = 10$. The file
-\file{examples/dampedPendulum.mk} describes it:
-\VerbatimInput[fontsize=\footnotesize]{../examples/dampedPendulum.mk}
+\file{src/examples/dampedPendulum.mk} describes it:
+\VerbatimInput[fontsize=\footnotesize]{../src/examples/dampedPendulum.mk}
 \texttt{var} and \texttt{ff} are comma-separated lists. \texttt{cen} and
 \texttt{wid} give the box as centre and half-width in each coordinate;
 \verb|lohi = "0.9 1.1 -0.1 0.1"| would give it by its bounds instead. The
 other fields are the arguments of Table~\ref{tab:args}, and
-\file{examples/_template.txt} describes them all. Run the file with
+\file{src/examples/_template.txt} describes them all. Run the file with
 \texttt{make run}:
 \out{out/pendulum.txt}
 Any field can be set on the command line without editing the file. Here
@@ -395,17 +394,18 @@ shows the result:
 
 Interval evaluation depends on how an expression is written: $x(1-x)$ and
 $x - x^2$ are the same function but give different enclosures over a box.
-If SymEngine was found when EnCorelib was built, every $f_i$ is first
+If SymEngine was found when EndCorelib was built, every $f_i$ is first
 multiplied out into a sum of monomials, so that \verb|(1-x^2)*y-x| becomes
 \verb|-x+y-x^2*y|. Without SymEngine it is evaluated as written. The
 \verb|f =| line of the output shows the form that was used.
 
-On Lorenz (Eg5) the difference is large. Run to $H = 5$ with $\eps = 1$ and
-\texttt{stepB=0}, written as \verb|10*(y-x), x*(28-z)-y, x*y-8*z/3| and
-evaluated as written, EndCover subdivided $B_0$ down to depth 3 and
-processed 585 sub-boxes. Multiplied out, it stopped at depth 2 after 73
-sub-boxes, about eight times less work. The files in \file{examples/} and
-the scripts in \file{repro/} therefore spell out the multiplied-out form.
+On Lorenz (Eg5) the difference shows in the work. Run to $H = 5$ with
+$\eps = 1$ and \texttt{stepB=0}, written as
+\verb|10*(y-x), x*(28-z)-y, x*y-8*z/3| and evaluated as written, EndCover
+split $B_0$ down to depth 7, processed 116 scaffolds and returned 78 boxes.
+Multiplied out, it stopped at depth 6 after 95 scaffolds and 64 boxes. The
+files in \file{src/examples/} and the scripts in \file{src/repro/} therefore
+spell out the multiplied-out form.
 That is also the form the numbers of the paper were computed from, so these
 files give the same results in builds with and without SymEngine.
 
@@ -431,7 +431,7 @@ is finished. The \texttt{debug} argument switches on progress reports:
 \texttt{debug} & reports \\
 \midrule
 0 & none \\
-1 & one line for every sub-box of $B_0$ that EndCover has processed \\
+1 & one line for every scaffold that EndCover has taken from its queue \\
 2 & also one line for every scaffold laid out to the horizon and for every
     pass of Refine \\
 3 & also one line for every stage appended by Extend, and the containment
@@ -446,50 +446,54 @@ reports go to standard error and the results to standard output, so
 \verb|2> progress.log| keeps the reports in a file you can follow with
 \verb|tail -f progress.log|.
 
-\subsection{One line per sub-box}
+\subsection{One line per scaffold}
 
 Eg1 with $\eps = 0.5$ at \texttt{debug=1}:
 \out{out/debug1.txt}
-Each sub-box gets one line, written when its scaffold is finished:
+Each scaffold taken from the queue gets one line, written when it is
+finished:
 \begin{description}[font=\ttfamily\mdseries,leftmargin=2em,style=nextline]
-  \item[run] the number of the sub-box, in the order processed.
-  \item[depth] how often $B_0$ was subdivided to obtain it; $B_0$ itself
-        has depth 0. A subdivision halves every coordinate of positive width
-        and gives $2^n$ children, so $\wmax(B)$ halves with each level.
+  \item[run] the number of the scaffold, in the order processed.
+  \item[depth] how often $B_0$ was split to obtain its initial box $B$;
+        $B_0$ itself has depth 0. \texttt{Split} halves a longest side, so
+        in $n$ dimensions $\wmax(B)$ halves every $n$ levels.
   \item[wmax(E\_m)] the width of its end-enclosure at $H$.
-  \item[queue] the sub-boxes still waiting.
-  \item[done] the share of $B_0$, by volume, covered by resolved sub-boxes.
-  \item[outcome] \texttt{resolved}: Refine reached $\eps$ for the whole
-        sub-box, which is finished. \texttt{split, E\_0 -> w}: Refine reached
-        $\eps$ only after shrinking $E_0$ to width $w$; the part of the
-        sub-box outside $E_0$ is not covered yet, so the sub-box is replaced
-        by its $2^n$ children. \texttt{failed:} the scaffold could not be
-        carried to the horizon, for the reason given, and the sub-box is
-        subdivided as well (Section~\ref{sec:fail}).
+  \item[queue] the scaffolds still waiting.
+  \item[done] the share of $B_0$, by volume, that the cover already covers.
+  \item[outcome] \texttt{resolved}: the scaffold reached $H$ with an
+        end-enclosure at most $\eps$ wide, which goes into $C$.
+        \texttt{resolved, E\_0 -> w, k split off}: on the way Refine called
+        \texttt{Split} $k$ times, so $E_0$ ended at width $w$, and the $k$
+        halves split off went into the queue as new scaffolds.
+        \texttt{split:} the scaffold could not be carried to the
+        horizon, for the reason given, and its initial box was split in two
+        (Section~\ref{sec:fail}).
 \end{description}
-EndCover always takes the sub-box queued last, so it works depth first: the
-children of a split box are processed before its siblings. In this run
-Refine shrank $E_0$ in runs 1, 4 and 9, and each of those sub-boxes was
-replaced by its four children. The other ten sub-boxes were resolved, and the
-13 end-enclosures form $C$.
+EndCover always takes the scaffold queued last, so it works depth first. In
+this run Refine split $E_0$ twice in run 1, first along $x$ and then along
+$y$, and the two halves it split off became runs 3 and 2; run 3 split once
+more, and its half became run 4. The four end-enclosures form $C$, and the
+four final $E_0$ tile $B_0$ with squares of side 0.1.
 
-\subsection{Inside one sub-box}
+\subsection{Inside one scaffold}
 
-At \texttt{debug=2} each sub-box also shows how its scaffold was built and
-refined. The first lines of the same run:
-\out[lastline=15]{out/debug2.txt}
+At \texttt{debug=2} each scaffold also shows how it was built and refined:
+\out[lastline=16]{out/debug2.txt}
 \texttt{scaffold laid out} means that Extend has reached $t = H$ in $m$
-stages; the widths of $E_0$ and of the end-enclosure $E_m$ follow. Each
+stages; the widths of $E_0$ and of the end-enclosure $E_m$ follow.
+\texttt{split-off scaffold evaluated} reports the same for a scaffold that
+\texttt{Split} split off: it is a copy of the scaffold it came from, with
+its own half as $E_0$, and is walked once from that half. Each
 \texttt{Refine pass} line reports one pass of the main loop of Refine:
 the new widths of $E_m$ and $E_0$; \texttt{mu\_max}, the logarithmic-norm
 bound that enters the tests (5.4) and (5.5); the number of stages $m$; how
 many stages \texttt{Bisect} refined in this pass; how many stages are frozen
-by (5.4); and how many times \texttt{Split} shrank $E_0$. For run 1, Extend
-reached $H = 4$ in 55 stages with an end-enclosure 6.3 wide. One pass of
-Refine bisected all 55 stages and split once, which halved $E_0$ to 0.1 and
-brought $E_m$ down to 0.41, below $\eps = 0.5$. In runs 2 and 3 the
-end-enclosure was within $\eps$ as soon as the scaffold reached $H$, so
-Refine had nothing to do.
+by (5.4); and how many times \texttt{Split} halved $E_0$. For run 1, Extend
+reached $H = 4$ in 55 stages with an end-enclosure 6.3 wide. Each of the two
+passes of Refine bisected all 55 stages and split once, which brought $E_m$
+down to 0.80 and then to 0.41, below $\eps = 0.5$. The half split off in the
+second pass, run 2, was within $\eps$ as soon as it was evaluated, so Refine
+had nothing to do.
 
 At \texttt{debug=3} every stage appears as Extend appends it, with its end
 time $t_i$, its length $h$ and its end-enclosure $E_i$:
@@ -502,13 +506,14 @@ StepB allowed only small steps.
 Lorenz (Eg5) to $H = 5$ with $\eps = 1$, from the \file{.mk} file, begins
 \out[lastline=10]{out/lorenz_T5.txt}
 and ends
-\out[firstline=76]{out/lorenz_T5.txt}
-The scaffold of $B_0$ could not be carried past $t = 3.79$, and each of its
-eight children stopped near $t = 4.65$. Their children, $5\cdot 10^{-4}$
-wide, all reached $H = 5$ with end-enclosures narrower than $\eps$, and their
-64 end-enclosures form $C$; a sub-box that failed contributes nothing. The
+\out[firstline=96]{out/lorenz_T5.txt}
+The scaffold of $B_0$ could not be carried past $t = 3.79$ and those of its
+halves past $t = 3.95$; the boxes of depths 2, 3 and 4 got to $t = 4.43$,
+$4.65$ and $4.69$. The 32 boxes of depth 5 reached $H = 5$, Refine split each
+of them once more, and the 64 end-enclosures, all from boxes of depth 6, form
+$C$; a scaffold that was split in two contributes nothing. The
 \texttt{done} column moves by $1/64 \approx 1.6\%$ with each resolved
-sub-box, so after a few minutes of a long run it tells you roughly how much
+scaffold, so after a few minutes of a long run it tells you roughly how much
 longer to wait.
 
 % ---------------------------------------------------------------------------
@@ -522,13 +527,13 @@ settings of the example files
 (\texttt{mode=0}, \texttt{method=0}, \texttt{stepB=0}, \texttt{tubedegree=0},
 \texttt{order=20}), changes one option, and runs the problem to the longer
 horizon of the paper's Table~2. The runs come from
-\file{doc/compare_options.sh}, four at a time on an Intel Core i7-13700HX,
-and \file{doc/make_tables.py} turned them into the tables, so both can be
-regenerated. Times are wall-clock seconds. Running four at a time made
-otherwise identical runs differ by up to a factor of about two, so read only
-the larger differences in the tables, and compare times within a table
-rather than with your own machine. The last table was measured one run at a
-time.
+\file{src/doc/compare_options.sh}, six at a time on an Intel Core i7-13700HX,
+and \file{src/doc/make_tables.py} turned them into the tables, so both can be
+regenerated. Times are wall-clock seconds. A run that was still going after
+ten minutes was stopped; its cell shows $>$600 and has no result. Running
+several at a time makes the times less precise, so read only the larger
+differences in the tables, and compare times within a table rather than
+with your own machine. The last table was measured two runs at a time.
 
 \subsection{The error bound}
 
@@ -540,26 +545,24 @@ time.
 \input{out/table_eps.tex}
 \end{table}
 
-Going from $\eps = 1$ to $\eps = 0.5$ changed little and often nothing
-(Table~\ref{tab:eps}), because an end-enclosure already narrower than 0.5
-satisfies both. From 0.5 to 0.1 the number of
-boxes grew by a factor of 4 to 12 on the first five problems and the time
-by a factor of 2 to 35. R\"ossler is the extreme case: without any
-subdivision its end-enclosure is 0.495 wide, so $\eps = 0.5$ takes a fifth
-of a second, and $\eps = 0.1$ takes 585 sub-boxes and almost five minutes.
-Every level of subdivision multiplies the number of sub-boxes by $2^n$, so
-the cost depends on how far $\eps$ lies below the width of the undivided
+Going from $\eps = 1$ to $\eps = 0.5$ at most doubled the number of boxes,
+and left it unchanged on FitzHugh-Nagumo, Lorenz and R\"ossler
+(Table~\ref{tab:eps}). From 0.5 to 0.1 the number of boxes grew by a factor of 2 to 12 where the runs
+finished, and the time by a factor of up to 140; Lotka-Volterra, Lorenz and
+R\"ossler did not finish within ten minutes. R\"ossler is the extreme case:
+without any subdivision its end-enclosure is 0.495 wide, so $\eps = 0.5$
+takes a fifth of a second. Every split halves one side of a box, so the cost
+depends on how far $\eps$ lies below the width of the undivided
 end-enclosure. Start with a generous $\eps$, look at $\#(C)$ and the time,
 and lower it in steps.
 
 \subsection{The horizon}
 
 The horizon sets how far the end set has spread by the time the cover is
-taken. For Lotka-Volterra with $\eps = 0.1$ the cover has 85 boxes at
-$H = 4$ and 524 at $H = 5.5$ (\texttt{make table2}). For a chaotic system
-the horizon also decides whether a run can finish at all, because every
-level of subdivision multiplies the work by $2^n$ and gains only a fixed
-amount of time; Section~\ref{sec:fail} shows how to read that amount off the
+taken. For Lotka-Volterra with $\eps = 0.1$ and \texttt{method=2} the cover
+has 56 boxes at $H = 4$ and 297 at $H = 5.5$. For a chaotic system the
+horizon also decides whether a run can finish at all, because every level
+of splitting doubles the work and gains only a fixed amount of time; Section~\ref{sec:fail} shows how to read that amount off the
 progress report.
 
 \subsection{The enclosure step: \texttt{stepB}}
@@ -573,22 +576,22 @@ progress report.
 
 Variants 1 and 2 intersect each enclosure with the ball of the paper's
 Lemma 2.1, and variants 2 and 3 use Lohner's method with a higher-order a
-priori enclosure. In every row of Table~\ref{tab:stepB} variant 1 returned
-the cover of variant 0, and variant 3 that of variant 2, with the same
-number of boxes and the same $B_1$: the ball narrowed nothing. It did cost
-time in every row, a factor of 1.3 to 2.1 for variant 1 over variant 0 and
-of 2 to 5 for variant 2 over variant 3.
+priori enclosure. In every row of Table~\ref{tab:stepB} in which both
+finished, variant 1 returned the cover of variant 0, and variant 3 that of
+variant 2, with the same number of boxes and the same $B_1$: the ball
+narrowed nothing. It did cost time, a factor of 1.4 to 2.6 for variant 1
+over variant 0 and of 2 to 6 for variant 2 over variant 3.
 
-That leaves variants 0 and 3. Variant 3 was the faster one
-in 12 of the 13 rows, mostly by a factor between 2 and 5. Its $B_1$ was
-narrower in 9 rows and the same to three digits in 2; on FitzHugh-Nagumo it
-was wider, by 6\% at $\eps = 0.1$ and 22\% at $\eps = 0.5$, with fewer
-boxes. The one row where
-it was slower is Lorenz at $\eps = 0.5$: it subdivided down to 72 boxes
-where variant 0 stopped at 8 and took 66 seconds instead of 14, and it
-returned a hull 0.135 wide instead of 0.458. Variant 0 is the setting of
-the paper's experiments and of the example files; for a new problem, try
-variant 3 first.
+That leaves variants 0 and 3. Variant 3 was the faster one in every row in
+which both finished, by a factor between 1.3 and 11. Its $B_1$ was narrower
+on Lotka-Volterra, FitzHugh-Nagumo, Lorenz and R\"ossler, by up to 4\%, and
+wider on Van der Pol, by 2.4\% at $\eps = 0.5$, and on the quadratic
+system, by less than 0.1\%. On Lorenz to $H = 5$ with $\eps = 1$, variants 0
+and 1 did not finish within ten minutes while variant 3 took 203 seconds; in
+Section~\ref{sec:debug} variant 0 took 774 seconds for the same 64 boxes.
+Variant 0 is the setting of the paper's
+experiments and of the example files; for a new problem, try variant 3
+first.
 
 \subsection{The refinement operators: \texttt{method}}
 
@@ -599,15 +602,19 @@ variant 3 first.
 \input{out/table_method.tex}
 \end{table}
 
-The three strategies returned covers with the same number of boxes and the
-same $B_1$ in all twelve rows of Table~\ref{tab:method}. On these problems
-\texttt{Bisect} and \texttt{EulerTube} changed no result and only added
-time; \texttt{Split} did all the work. At
-$\eps = 0.1$, method 2 needed between 20\% and 83\% of the time of method 0,
-and method 1 was usually in between. At $\eps = 0.5$, where Refine
-has little to do, the three took about the same time. Method 0 is Refine as
-the paper states it, and the setting of its experiments; use method 2 when
-time matters.
+Method 2 was the fastest in every row of Table~\ref{tab:method} that took
+more than two seconds, by up to a factor of 120 at $\eps = 0.1$, and it
+finished every run, also those that methods 0 and 1 did not finish within
+ten minutes. It paid for this with a few more boxes in some rows and a wider
+$B_1$ at $\eps = 0.5$: by 8\% on Lotka-Volterra and Van der Pol, 1\% on the
+quadratic system and 21\% on Lorenz. At $\eps = 0.1$ its $B_1$ was at most
+0.5\% wider, and on FitzHugh-Nagumo 2\% narrower. Method 1, Bisect without
+the tube, returned the cover of method 0 on Lotka-Volterra, FitzHugh-Nagumo
+and R\"ossler at $\eps = 0.5$ and on the quadratic system at $\eps = 0.1$;
+elsewhere its $B_1$ was wider, by 2\% or less except on Lorenz at
+$\eps = 0.5$, where it was 25\% wider. Method 1 was faster than method 0 in
+most rows. Method 0 is Refine as the paper states it, and the setting of its
+experiments; use method 2 when time matters.
 
 \subsection{The Taylor order}
 
@@ -618,13 +625,14 @@ time matters.
 \input{out/table_order.tex}
 \end{table}
 
-The order changes the step sizes, and with them the whole run, in ways
-that are hard to predict (Table~\ref{tab:order}). On Lotka-Volterra the lowest order gave the
-narrowest hull with the fewest boxes but took twice as long as order 15. On
-Lorenz, orders 15 and 30 subdivided down to 72 boxes where orders 10 and 20
-needed 9 and 8. On R\"ossler the cover hardly changed and order 30 was the
-fastest. Order 20, the paper's value and the one in the example files, was
-never the slowest. Try 15 or 30 when a run is too slow.
+The order changes the step sizes, and with them the whole run, in ways that
+are hard to predict (Table~\ref{tab:order}). Order 20, the paper's value and
+the one in the example files, was the fastest in every row, and order 30
+about as fast on Lotka-Volterra. Orders 10 and 30 returned a hull about 4\%
+narrower on Lorenz, at 3.4 and 2.6 times the time; on R\"ossler every other
+order gave a narrower hull, by up to 3.5\%, and on Lotka-Volterra order 15
+one 3\% narrower, at 1.2 times the time. Keep 20 unless the hull matters
+more than the time.
 
 \subsection{Boundary mode}
 
@@ -636,15 +644,17 @@ never the slowest. Try 15 or 30 when a run is too slow.
 \input{out/table_mode.tex}
 \end{table}
 
-Boundary mode covers only the boundary of $B_0$: its four edges in two
-dimensions, its $2n$ faces in $n$ dimensions. The flow maps the boundary of
-$B_0$ onto the boundary of the end set, so the bounding box $B_1$ of this
-cover encloses $\End(B_0,H)$ as well; the boxes themselves do not cover the
-interior of the end set. In Table~\ref{tab:mode} boundary mode needed far
-fewer boxes, and its $B_1$ was within 2\% of the one EndCover found, except
-on Lorenz, where it was 10\% narrower. The time went both ways: four times
-faster on Lotka-Volterra, but twice as slow on Van der Pol and four times
-as slow on Lorenz. Use it when $B_1$ is all you need.
+Boundary mode covers only the boundary of $B_0$: it runs EndCover on each of
+the four edges in two dimensions, the $2n$ faces in $n$ dimensions. The flow
+maps the boundary of $B_0$ onto the boundary of the end set, so the bounding
+box $B_1$ of this cover encloses $\End(B_0,H)$ as well; the boxes themselves
+do not cover the interior of the end set. In Table~\ref{tab:mode} boundary
+mode finished Lotka-Volterra, which EndCover did not finish within ten
+minutes, and was 2.6 and 19 times faster on Van der Pol and the quadratic
+system, with fewer boxes and a $B_1$ within 0.5\% of the one EndCover found.
+On FitzHugh-Nagumo it took longer and returned more boxes, with a $B_1$
+5.5\% narrower. On Lorenz and R\"ossler neither mode finished. Use it when $B_1$
+is all you need.
 
 \subsection{The remaining options}
 
@@ -653,10 +663,10 @@ tube of the paper's Section 5.2, and the program refuses anything else.
 \texttt{output\_mode=2} is right for most runs; level 3 writes the box files
 and level 4 also computes, for every sub-box of $B_0$, its images at
 $t = 0.1$, $0.4$ and $0.7$ (those not beyond $H$), which costs one more
-integration from each sub-box for each of these times. \texttt{debug=1} prints a line per sub-box and costs nothing you
+integration from each sub-box for each of these times. \texttt{debug=1} prints a line per scaffold and costs nothing you
 would notice, so it is worth switching on for anything that runs longer than
 a minute; levels 2 and 3 write far more and are meant for looking into one
-sub-box.
+scaffold.
 
 \subsection{In short}
 
@@ -678,28 +688,28 @@ sub-box.
         \texttt{method=0}, \texttt{stepB=0} and \texttt{order=20}; keep them
         when you compare with the paper's tables.
   \item For speed, use \texttt{method=2} and \texttt{stepB=3}. Run together
-        and one at a time (Table~\ref{tab:combo}), they were 3 to 25 times
-        faster than the settings of the example files and returned the same
-        or a narrower $B_1$, except on FitzHugh-Nagumo, where $B_1$ was 6\%
-        wider.
+        (Table~\ref{tab:combo}), they finished every problem within a
+        minute, also the three that the settings of the example files did
+        not finish within ten minutes, and were 2.4 to 86 times faster on
+        the others. Their $B_1$ was within 0.6\% of the one of the example
+        settings at $\eps = 0.1$, and 43\% wider on Lorenz to $H = 5$ at
+        $\eps = 1$.
   \item Write the right-hand side multiplied out, or build with SymEngine
         (Section~\ref{sec:form}).
   \item Use \texttt{mode=1} only when $B_1$ is all you need.
 \end{itemize}
 
 % ---------------------------------------------------------------------------
-\section{When a run fails}\label{sec:fail}
+\section{When a run stops}\label{sec:fail}
 % ---------------------------------------------------------------------------
 
-A failure inside a run is not fatal. When the scaffold of a sub-box cannot
-be carried to $H$, typically because StepB cannot find a step for an
-enclosure that has grown too wide, EndCover subdivides the sub-box and tries
-its children; with \texttt{debug=1} such a sub-box shows up as
-\texttt{failed:} followed by the reason and the time reached. The Lorenz run
-of Section~\ref{sec:debug} had nine such failures before its 64 sub-boxes of
-depth 2 went through. A smaller box has a narrower enclosure, so the
-children usually get further, and the run itself fails only when there is
-nothing left to subdivide.
+When a scaffold cannot be carried to $H$, typically because StepB cannot find
+a step for an enclosure that has grown too wide, EndCover splits its initial
+box in two along a longest side and goes on with the halves; with
+\texttt{debug=1} such a scaffold shows up as \texttt{split:} followed by the
+reason and the time reached. A smaller box has a narrower enclosure, so the
+halves usually get further. The run stops only when double precision is
+exhausted, that is, when such a box can no longer be halved.
 
 \begin{center}\small
 \begin{tabular}{p{0.42\textwidth}p{0.5\textwidth}}
@@ -710,45 +720,44 @@ message & meaning and remedy \\
   an argument is missing or out of range; the message says which \\
 \texttt{Cannot read the right-hand side \dots}, exit status 2 &
   the parser rejected an $f_i$ (Section~\ref{sec:rhs}) \\
-\texttt{[EndCover failed] \dots\ The sub-box of B0 on which this happened is
-  a single point \dots\ Try a smaller T.}, exit status 3 &
-  even the solution through one point could not be enclosed up to $H$, so
-  subdividing cannot help. Lower $T$; see the example below \\
-\texttt{[EndCover failed] EndCover: exceeded maxSplits \dots}, exit status 3 &
-  more than two million subdivisions; raise $\eps$ or lower $T$ \\
-\texttt{[Boundary failed] \dots}, exit status 3 &
-  the same for \texttt{mode=1}: an edge segment could not be enclosed even
-  as a single point \\
+\texttt{[EndCover stopped] double precision exhausted \dots\ cannot be
+  halved in double precision. Try a smaller T.}, exit status 3 &
+  a scaffold could not be carried to $H$ and its initial box cannot be
+  halved in double precision. Lower $T$; see the example below \\
+\texttt{[EndCover stopped] EndCover: exceeded maxSplits \dots}, exit status 3 &
+  more than two million splits; raise $\eps$ or lower $T$ \\
+\texttt{[Boundary stopped] \dots}, exit status 3 &
+  the same for \texttt{mode=1} \\
 \bottomrule
 \end{tabular}
 \end{center}
 
-The single-point failure is the one to expect with chaotic systems. Lorenz
-from the box of Eg5 to $H = 100$, with \texttt{stepB=3} and
-\texttt{debug=1}, starts
+With chaotic systems double precision is what runs out. Lorenz from the box
+of Eg5 to $H = 100$, with \texttt{stepB=3} and \texttt{debug=1}, starts
 \out[lastline=8]{out/lorenz_T100.txt}
 and ends
-\out[firstline=42]{out/lorenz_T100.txt}
-Every sub-box fails, so EndCover subdivides it and goes on with its last
-child, one level deeper each time. $B_0$ got to $t = 3.83$, and the sub-box
-at depth 20, a million times narrower, to $t = 19.13$: each halving bought
-about $0.76$ time units, close to $\ln 2 / 0.906 \approx 0.765$, where
-$0.906$ is the largest Lyapunov exponent of the Lorenz system. Beyond depth
-30 the gain falls off, and from depth 33 on the failures stay between
-$t = 25.96$ and $26.65$: at order 20 and in double precision the enclosure
-of a single solution cannot be carried further, whatever $\eps$ is. At
-depth 40 the sub-box is a single point and the program stops, after about a
-minute.
+\out[firstline=124]{out/lorenz_T100.txt}
+No scaffold reaches $H$, so EndCover splits each box and goes on with its
+lower half, one level deeper each time; three levels halve every side once.
+$B_0$ got to $t = 3.83$ and the box of depth 3 to $t = 4.68$. Up to depth 90
+every three levels bought 0.72 time units on average, close to
+$\ln 2 / 0.906 \approx 0.765$, where $0.906$ is the largest Lyapunov exponent
+of the Lorenz system; the box of depth 60, a million times narrower than
+$B_0$, got to $t = 16.86$. From depth 96 on the times stay between
+$t = 26.40$ and $26.78$: at order 20 and in double precision the enclosure of
+a single solution cannot be carried further, whatever $\eps$ is. At depth 121
+no side of the box can be halved in double precision, and the program stops,
+after about six minutes.
 
 Long before that limit the cost becomes the problem, and the progress
-report lets you estimate it. Write $t_d$ for the time that sub-boxes of
-depth $d$ reach; in this run $t_0 = 3.83$, $t_1 = 4.61$, $t_2 = 5.45$,
-$t_3 = 6.21$ and $t_4 = 7.00$. Covering $B_0$ to the horizon $H$ needs
-sub-boxes of a depth $d$ with $t_d \ge H$, and there are $2^{nd}$ of them.
-For Lorenz that means $8^2 = 64$ sub-boxes for $H = 5$ (the run of
-Section~\ref{sec:debug}), presumably 512 for $H = 6$, and eight times more
-for every further $0.76$ time units. A run that fails at about the same time
-while its depth keeps growing has met the precision limit; lower $H$.
+report lets you estimate it. Write $t_d$ for the time that boxes of depth $d$
+reach; in this run $t_0 = 3.83$, $t_3 = 4.68$, $t_6 = 5.46$, $t_9 = 6.17$ and
+$t_{12} = 6.86$. Covering $B_0$ to the horizon $H$ needs boxes of a depth $d$
+with $t_d \ge H$, and there are $2^d$ of them. For Lorenz that means depth 6
+and 64 boxes for $H = 5$ (the run of Section~\ref{sec:debug}), presumably 512
+for $H = 6$, and eight times more for every further 0.72 time units. A run
+whose scaffolds stop at about the same time while the depth keeps growing has
+met the precision limit; lower $H$.
 
 % ---------------------------------------------------------------------------
 \section{Reproducing the paper}\label{sec:repro}
@@ -766,7 +775,7 @@ make audit       # every box of a cover checked against its own sub-box
 \end{Verbatim}
 \texttt{make table2} writes \file{repro/out/table2.txt} and
 \file{repro/out/table2.tex}. The variables \texttt{EPS}, \texttt{METHOD} and
-\texttt{STEPB} change its settings, and \verb|bash repro/table2.sh eg1 eg5|
+\texttt{STEPB} change its settings, and \verb|bash src/repro/table2.sh eg1 eg5|
 restricts it to some of the problems. \texttt{make compare} reads
 \file{repro/table2_paper.txt}, which holds the table as printed, and marks
 every cell that differs. Timings depend on the machine; the paper's were
@@ -776,12 +785,12 @@ timings in this guide.
 \texttt{make figure1} computes Eijgenraam's example for $\eps = 0.3$, $0.1$
 and $0.02$ and the pendulum trajectories of the top row;
 \texttt{make figure4} writes \file{E0.txt} and \file{E1.txt} for each problem
-into \file{repro/out/fig4/}. The scripts \file{tools/plot_eijgenraam.py},
-\file{tools/plot_pendulum.py} and \file{tools/plot_boxes.py} draw them; the
+into \file{repro/out/fig4/}. The scripts \file{src/tools/plot_eijgenraam.py},
+\file{src/tools/plot_pendulum.py} and \file{src/tools/plot_boxes.py} draw them; the
 README gives the exact commands.
 
 \texttt{make verify} takes a grid of sample points of $B_0$ for each problem,
-encloses the solution through each point with \texttt{Encoretraj}, and checks
+encloses the solution through each point with \texttt{EndCoretraj}, and checks
 that every such enclosure lies inside some box of $C$. This tests the left
 inclusion of \eqref{eq:cover}, that nothing is lost. It does not test the
 right one, so a box of $C$ that is far from the end set would pass.
@@ -817,28 +826,31 @@ file & contents & paper \\
 \file{refine.h}      & Refine and its operators: \texttt{Evaluate},
                        \texttt{Bisect}, \texttt{EulerTube}, \texttt{Split},
                        and the tests (5.4) to (5.6) & 5 \\
-\file{endcover.h}    & EndCover: the queue of sub-boxes of $B_0$ & 3.3 \\
+\file{endcover.h}    & EndCover: the queue of scaffolds & 3.3 \\
 \file{boundary.h}    & \texttt{runScaffold}, which runs Extend and Refine for
-                       one sub-box, and the Boundary mode & 3.3 \\
+                       one scaffold, and the Boundary mode & 3.3 \\
 \file{progress.h}    & the progress reports of Section~\ref{sec:debug} & \\
 \file{symparse.h}    & clean-up of the right-hand side
                        (Section~\ref{sec:rhs}) & \\
-\file{EnCorelib.cpp} & command line, output levels, output files & 7 \\
+\file{EndCorelib.cpp} & command line, output levels, output files & 7 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
 A run of \texttt{mode=0} goes through the files in this order.
 \texttt{main} reads the arguments and calls \texttt{EndCover} with $B_0$.
-EndCover keeps a queue of sub-boxes and calls \texttt{runScaffold} for each.
-\texttt{runScaffold} lays out a scaffold from the sub-box to $t = H$ with
-\texttt{ExtendToHorizon}, one stage per call of Extend, and then calls
-Refine. Each stage takes one step of StepB along a \texttt{SolutionChain},
-whose length StepA bounds. Refine uses \texttt{Bisect}, \texttt{EulerTube}
-and \texttt{Split} as \texttt{method} allows and walks the chain again with
-\texttt{Evaluate} after each change. When Refine had to shrink $E_0$,
-EndCover queues the $2^n$ children of the sub-box; otherwise the sub-box is
-finished. Names in the code follow the paper: \texttt{S.E}, \texttt{S.F},
+EndCover keeps a queue of scaffolds, starting with $\mathrm{Init}(B_0)$, and
+calls \texttt{runScaffold} for each. \texttt{runScaffold} lays out a new
+scaffold to $t = H$ with \texttt{ExtendToHorizon}, one stage per call of
+Extend, and then calls Refine. Each stage takes one step of StepB along a
+\texttt{SolutionChain}, whose length StepA bounds. Refine uses
+\texttt{Bisect}, \texttt{EulerTube} and \texttt{Split} as \texttt{method}
+allows and walks the chain again with \texttt{Evaluate} after each change.
+\texttt{Split} halves $E_0$ along a longest side: the scaffold goes on with
+one half, and a copy of it with the other half as $E_0$ goes into the queue,
+where \texttt{runScaffold} evaluates it from that half before refining it.
+When Refine returns, the end-enclosure of the scaffold goes into $C$.
+Names in the code follow the paper: \texttt{S.E}, \texttt{S.F},
 \texttt{S.G} and \texttt{S.t} are the components of a scaffold
 $S = (t, E, F, G)$, \texttt{eps0} is $\eps_0$, and the tests (5.4), (5.5) and
 (5.6) are \texttt{StageFreeze}, \texttt{NeedSplit} and

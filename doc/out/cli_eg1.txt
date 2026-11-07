@@ -1,9 +1,9 @@
-$ ./EnCorelib 2 0 0 0 0 2 x y 2*x-2*x*y -y+x*y 1.0 20 4 0  0.9 1.1  2.9 3.1
-EnCorelib  mode=EndCover  method=tube  stepB=lohner  tubedegree=1  order=20  n=2
+$ ./EndCorelib 2 0 0 0 0 2 x y 2*x-2*x*y -y+x*y 1.0 20 4 0  0.9 1.1  2.9 3.1
+EndCorelib  mode=EndCover  method=tube  stepB=lohner  tubedegree=1  order=20  n=2
          f  = (2*x-2*x*y, -y+x*y)
          B0 = {[0.9, 1.1],[2.9, 3.1]}   H=4   eps=1
-time(ms)=1010
-Hull(T=4.000000)={[1.093880, 1.853071],[0.146098, 0.243519]}
-B1=(1.473475, 0.194809) +- (0.379596, 0.048710)
-wmax(B1)=0.759191
-#(C)=5  #E0=5  max_{B in C} wmax(B)=0.551660
+time(ms)=249
+Hull(T=4.000000)={[1.013875, 1.945561],[0.131115, 0.263816]}
+B1=(1.479718, 0.197466) +- (0.465843, 0.066350)
+wmax(B1)=0.931686
+#(C)=2  #E0=2  max_{B in C} wmax(B)=0.798371

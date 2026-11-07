@@ -1,8 +1,8 @@
 $ make run-boundary-eg1Volterra
-EnCorelib  mode=Boundary  method=tube  stepB=lohner  tubedegree=1  order=20  n=2
+EndCorelib  mode=Boundary  method=tube  stepB=lohner  tubedegree=1  order=20  n=2
          f  = (2*x-2*x*y, -y+x*y)
          B0 = {[0.9, 1.1],[2.9, 3.1]}   H=4   eps=1
-time(ms)=495
+time(ms)=168
 Hull(T=4.000000)={[1.052989, 1.861093],[0.136927, 0.240360]}
 B1=(1.457041, 0.188644) +- (0.404052, 0.051717)
 wmax(B1)=0.808104

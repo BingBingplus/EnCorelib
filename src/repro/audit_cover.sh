@@ -2,8 +2,8 @@
 # ===========================================================================
 #  src/repro/audit_cover.sh  --  box-by-box check of the computed covers
 #
-#  For each problem this runs EnCorelib at output level 3 and hands E0.txt
-#  and E1.txt to ./Encoreaudit, which checks that every box of the cover C
+#  For each problem this runs EndCorelib at output level 3 and hands E0.txt
+#  and E1.txt to ./EndCoreaudit, which checks that every box of the cover C
 #  meets the validated images of the centre and the corners of its own
 #  sub-box of B0 (see src/tools/audit_cover.cpp).  src/repro/verify_cover.sh checks
 #  that the sample images lie in some box of C; this check also catches a
@@ -14,18 +14,18 @@
 #      bash src/repro/audit_cover.sh eg1 eij
 #      EPS=0.05 METHODS="0 2" STEPB=3 bash src/repro/audit_cover.sh eg2
 #
-#  Requires:  make             (./EnCorelib)
-#             make Encoreaudit (./Encoreaudit)
+#  Requires:  make             (./EndCorelib)
+#             make EndCoreaudit (./EndCoreaudit)
 # ===========================================================================
 set -u
 
-cd "$(dirname "$0")/.." || exit 1
-BIN=./EnCorelib;    [ -x "$BIN" ]  || BIN=./EnCorelib.exe
-[ -x "$BIN" ]       || BIN=./bin/EnCorelib.exe
-AUD=./Encoreaudit;  [ -x "$AUD" ]  || AUD=./Encoreaudit.exe
-[ -x "$AUD" ]       || AUD=./bin/Encoreaudit.exe
+cd "$(dirname "$0")/../.." || exit 1
+BIN=./EndCorelib;    [ -x "$BIN" ]  || BIN=./EndCorelib.exe
+[ -x "$BIN" ]       || BIN=./bin/EndCorelib.exe
+AUD=./EndCoreaudit;  [ -x "$AUD" ]  || AUD=./EndCoreaudit.exe
+[ -x "$AUD" ]       || AUD=./bin/EndCoreaudit.exe
 for f in "$BIN" "$AUD"; do
-  [ -x "$f" ] || { echo "build first:  make && make Encoreaudit" >&2; exit 1; }
+  [ -x "$f" ] || { echo "build first:  make && make EndCoreaudit" >&2; exit 1; }
 done
 
 EPS=${EPS:-0.1}

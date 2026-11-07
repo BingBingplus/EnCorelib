@@ -1,5 +1,5 @@
 // ===========================================================================
-//  EnCorelib.cpp  --  EndCover for the Initial Value Problem
+//  EndCorelib.cpp  --  EndCover for the Initial Value Problem
 //
 //  Reference implementation for
 //
@@ -15,7 +15,7 @@
 //  ------------------------------------------------------------------------
 //  USAGE
 //
-//    ./EnCorelib output_mode mode method stepB tubedegree n
+//    ./EndCorelib output_mode mode method stepB tubedegree n
 //              var_1 ... var_n  f_1 ... f_n
 //              eps order T debug
 //              lo_1 hi_1 ... lo_n hi_n
@@ -153,22 +153,20 @@ static void appendLog(const std::string& tag, int mode, int method, int stepBtyp
     f << ")\t" << wmax(B1) << '\t' << timeSec << '\t' << nCover << '\t' << B0 << '\n';
 }
 
-// Init(B): the 0-stage scaffold of Subsection 3.3.
-static Scaffold Init(const IVector& B, double delta, double H) {
+// The mini-scaffold every new scaffold Init(B) starts from (Subsection 3.3).
+static MiniScaffold initialMiniScaffold(double delta, double H) {
     MiniScaffold G;
     G.mu    = {1000.0};   // sentinel: no logNorm bound known yet
     G.delta = delta;
     G.hTube = H;
     G.ell   = 0;
-    G.E     = {B};
-    G.F     = {B};
     G.nTube = 1;
-    return Scaffold{{0.0}, {B}, {B}, {G}};
+    return G;
 }
 
 static void usage() {
     std::cerr <<
-      "Usage: EnCorelib output_mode mode method stepB tubedegree n \\\n"
+      "Usage: EndCorelib output_mode mode method stepB tubedegree n \\\n"
       "               var1 ... varn  f1 ... fn \\\n"
       "               eps order T debug  lo1 hi1 ... lon hin\n\n"
       "  output_mode 0=time 1=+hull 2=+counts 3=+E0/E1 files 4=+plot files\n"
@@ -263,7 +261,7 @@ int main(int argc, char* argv[]) {
     const bool   chat  = (output_mode >= 3);   // progress chatter
 
     if (output_mode >= 1) {
-        std::cout << "EnCorelib  mode=" << modeName(mode)
+        std::cout << "EndCorelib  mode=" << modeName(mode)
                   << "  method=" << methodName(method)
                   << "  stepB=" << stepBName(stepB_type)
                   << "  tubedegree=" << tubedegree
@@ -276,57 +274,34 @@ int main(int argc, char* argv[]) {
     CoverResult Dat;
     Dat.hull = B;
 
+    const MiniScaffold G0 = initialMiniScaffold(delta, T);
+
+    // Extend and Refine one scaffold; returns the scaffolds Refine split off.
+    const endcover::ScaffoldRun run = [&](Scaffold& S) {
+        return runScaffold(S, F, eps0, delta, degree, T,
+                           method, stepB_type, tubedegree, debuglevel, n);
+    };
+
     auto t0 = std::chrono::high_resolution_clock::now();
 
-    // ─────────────────────────────────────────────────────────────────────
-    //  mode 0 : EndCover                          (paper, Subsection 3.3)
-    // ─────────────────────────────────────────────────────────────────────
-    if (mode == 0) {
-        MiniScaffold templateG = Init(B, delta, T).G[0];
-
-        auto endEnc = [&](const IVector& box, double epsLocal,
-                          const std::vector<double>& p, double Hlocal)
-            -> std::pair<IVector, IVector>
-        {
-            Scaffold S = runScaffold(box, F, templateG,
-                                     epsLocal, delta, degree, Hlocal,
-                                     method, stepB_type, tubedegree, debuglevel, n, p);
-            return {S.E.front(), S.E.back()};
-        };
-
-        endcover::EndCoverResult res;
-        try {
-            res = endcover::EndCover(B, eps0, T, endEnc, 2000000, endcover::COVER_ALL,
-                                     debuglevel);
-        } catch (const endcover::PointFailure& ex) {
-            std::cerr << "[EndCover failed] " << ex.what()
-                      << "\nTry a smaller T.\n";
-            return 3;
-        } catch (const std::exception& ex) {
-            std::cerr << "[EndCover failed] " << ex.what()
-                      << "\nTry a larger eps or a smaller T.\n";
-            return 3;
+    try {
+        if (mode == 0) {
+            // ── mode 0 : EndCover                (paper, Subsection 3.3)
+            endcover::EndCoverResult res = endcover::EndCover(B, G0, run, 2000000, debuglevel);
+            Dat.C  = res.cover;
+            Dat.E0 = res.initBoxes;
+        } else {
+            // ── mode 1 : Boundary, EndCover on each face of B0
+            BoundaryCover(Dat, B, G0, run, debuglevel, chat);
         }
-        Dat.C  = res.cover;
-        Dat.E0 = res.initBoxes;
-    }
-    // ─────────────────────────────────────────────────────────────────────
-    //  mode 1 : Boundary
-    // ─────────────────────────────────────────────────────────────────────
-    else {
-        Scaffold S = Init(B, delta, T);
-        try {
-            if (n == 2)
-                TwoDimEncAlgo(Dat, F, S, eps0, delta, degree, T,
-                              method, stepB_type, tubedegree, debuglevel, n, chat);
-            else
-                ThreeDimEncAlgo(Dat, F, S, eps0, delta, degree, T,
-                                method, stepB_type, tubedegree, debuglevel, n, chat);
-        } catch (const std::exception& ex) {
-            std::cerr << "[Boundary failed] " << ex.what()
-                      << "\nTry a larger eps or a smaller T.\n";
-            return 3;
-        }
+    } catch (const endcover::PrecisionLimit& ex) {
+        std::cerr << "[" << modeName(mode) << " stopped] double precision exhausted\n"
+                  << ex.what() << "\nTry a smaller T.\n";
+        return 3;
+    } catch (const std::exception& ex) {
+        std::cerr << "[" << modeName(mode) << " stopped] " << ex.what()
+                  << "\nTry a larger eps or a smaller T.\n";
+        return 3;
     }
 
     auto t1 = std::chrono::high_resolution_clock::now();
@@ -354,10 +329,9 @@ int main(int argc, char* argv[]) {
     if (output_mode >= 2) {
         std::cout << "#(C)=" << Dat.C.size() << "  #E0=" << Dat.E0.size()
                   << "  max_{B in C} wmax(B)=" << wmaxC << "\n";
-        if (mode == 0 && wmaxC > eps0)
-            std::cout << "note: C contains boxes wider than eps: for some sub-box of B0"
-                         " Refine could not\n      reach eps even with E_0 shrunk to a"
-                         " point.  Those boxes are still enclosures.\n";
+        if (wmaxC > eps0)
+            std::cout << "note: C contains boxes wider than eps; for their sub-boxes of B0,"
+                         " E_0 could not\n      be halved further in double precision.\n";
     }
 
     // ── Files ────────────────────────────────────────────────────────────

@@ -2,12 +2,12 @@
 
 Table 2 of the paper compares `Ours(eps)` with three external validated
 solvers.  Only `Ours(eps)` is produced by this repository
-(`bash repro/table2.sh`); the other three need software that we cannot
+(`bash src/repro/table2.sh`); the other three need software that we cannot
 redistribute.  This directory records exactly how they were driven.
 
 | Row in Table 2 | Software | How it was run |
 |---|---|---|
-| `CAPD` | [CAPD](http://capd.ii.uj.edu.pl/) `CnRect2Set`, Cr-Lohner with r = 3 | `capd_compare.cpp` in this directory — build with `make capdref` |
+| `CAPD` | [CAPD](http://capd.ii.uj.edu.pl/) `CnRect2Set`, Cr-Lohner with r = 3 | `src/repro/competitors/capd_compare.cpp` — build with `make capdref` |
 | `VNODE-LP` | [VNODE-LP](https://www.cas.mcmaster.ca/~nedialk/vnodelp/) | `vnodelp_compare.cc` template below |
 | `Taylor-model` | [INTLAB](https://www.tuhh.de/ti3/rump/intlab/) V14, `verifyode` with preconditioned Taylor models | `intlab_compare.m` template below |
 

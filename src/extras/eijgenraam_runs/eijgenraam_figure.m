@@ -19,7 +19,7 @@
 %
 % Data: eijgenraam_runs/eps<VAL>/E1.txt produced by
 %   ivp2026 (build/examples/version_2026), mode=0 (EndCover),
-%   examples/eg9Eijgenraam.mk  (n=2, ff = 0, x^2, cen=(0,0), wid=(1,0))
+%   src/examples/eg9Eijgenraam.mk  (n=2, ff = 0, x^2, cen=(0,0), wid=(1,0))
 %
 % The first N lines of each E1.txt are the actual eps-cover boxes
 % (N = the "E1 boxes=" count printed by the solver, see cover_count.txt);

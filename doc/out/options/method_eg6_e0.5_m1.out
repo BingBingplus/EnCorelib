@@ -1,7 +1,7 @@
-EnCorelib  mode=EndCover  method=bisect  stepB=lohner  tubedegree=1  order=20  n=3
+EndCorelib  mode=EndCover  method=bisect  stepB=lohner  tubedegree=1  order=20  n=3
          f  = (-y-z, x+0.2*y, 0.2-5.7*z+x*z)
          B0 = {[0.9, 1.1],[1.9, 2.1],[2.9, 3.1]}   H=4   eps=0.5
-time(ms)=248
+time(ms)=189
 Hull(T=4.000000)={[1.739656, 2.180490],[-3.124867, -2.629685],[0.043575, 0.048297]}
 B1=(1.960073, -2.877276, 0.045936) +- (0.220417, 0.247591, 0.002361)
 wmax(B1)=0.495182

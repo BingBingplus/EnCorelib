@@ -16,7 +16,7 @@
 #
 #  exactly as in Table 2 of the paper (the "Ours(1.0/0.5/0.1)" rows).
 #  Results are written to repro/out/table2.txt and repro/out/table2.tex;
-#  compare them with src/repro/table2_paper.txt.
+#  compare them with repro/table2_paper.txt.
 #
 #  The default (method=0) is the Refine of Section 5; METHOD / STEPB / ORDER
 #  select the other settings, see README section 3.2.
@@ -26,10 +26,10 @@
 # ===========================================================================
 set -u
 
-cd "$(dirname "$0")/.." || exit 1
-BIN=./EnCorelib
-[ -x "$BIN" ] || BIN=./EnCorelib.exe
-[ -x "$BIN" ] || BIN=./bin/EnCorelib.exe
+cd "$(dirname "$0")/../.." || exit 1
+BIN=./EndCorelib
+[ -x "$BIN" ] || BIN=./EndCorelib.exe
+[ -x "$BIN" ] || BIN=./bin/EndCorelib.exe
 if [ ! -x "$BIN" ]; then echo "build first (or use bin/):  make" >&2; exit 1; fi
 
 EPS=${EPS:-"1.0 0.5 0.1"}
@@ -123,4 +123,4 @@ done
 
 echo "\\end{tabular}" >> "$TEX"
 echo "written: $TXT  and  $TEX"
-echo "paper values for comparison: src/repro/table2_paper.txt"
+echo "paper values for comparison: repro/table2_paper.txt"

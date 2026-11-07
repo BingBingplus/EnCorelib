@@ -1,12 +1,12 @@
-$ make run EG=examples/fig1Eijgenraam.mk
-EnCorelib  mode=EndCover  method=tube  stepB=lohner  tubedegree=1  order=20  n=2
+$ make run EG=src/examples/fig1Eijgenraam.mk
+EndCorelib  mode=EndCover  method=tube  stepB=lohner  tubedegree=1  order=20  n=2
          f  = (0, x^2)
          B0 = {[-1, 1],[0, 0]}   H=1   eps=0.1
-time(ms)=482
+time(ms)=151
 Hull(T=1.000000)={[-1.000000, 1.000000],[-0.000000, 1.000000]}
 B1=(0.000000, 0.500000) +- (1.000000, 0.500000)
 wmax(B1)=2.000000
-#(C)=79  #E0=79  max_{B in C} wmax(B)=0.096680
-written -> E0.txt (79 boxes)
-written -> E1.txt (79 boxes)
-convex hull -> convex_hull.txt (50 pts)
+#(C)=40  #E0=40  max_{B in C} wmax(B)=0.092773
+written -> E0.txt (40 boxes)
+written -> E1.txt (40 boxes)
+convex hull -> convex_hull.txt (30 pts)

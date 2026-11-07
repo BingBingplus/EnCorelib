@@ -1,9 +1,9 @@
 // ===========================================================================
-//  repro/competitors/capd_compare.cpp  --  the "CAPD" rows of Table 2
+//  src/repro/competitors/capd_compare.cpp  --  the "CAPD" rows of Table 2
 //
 //  Runs CAPD's Cr-Lohner method (CnRect2Set with r = 3, the setting used in
 //  the paper) once from B0 to time H and prints the resulting end-enclosure
-//  in the same format as EnCorelib, so the rho column of Table 2 can be
+//  in the same format as EndCorelib, so the rho column of Table 2 can be
 //  recomputed:
 //
 //      rho(CAPD) = wmax(CAPD) / wmax(Ours(1.0)).

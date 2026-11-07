@@ -1,8 +1,8 @@
-EnCorelib  mode=EndCover  method=splitonly  stepB=lohnerHO  tubedegree=1  order=20  n=2
+EndCorelib  mode=EndCover  method=splitonly  stepB=lohnerHO  tubedegree=1  order=20  n=2
          f  = (y, x^2)
          B0 = {[0.95, 1.05],[-1.05, -0.95]}   H=4   eps=0.1
-time(ms)=3668
-Hull(T=4.000000)={[-0.711712, -0.525008],[-0.138097, 0.664957]}
-B1=(-0.618360, 0.263430) +- (0.093352, 0.401527)
+time(ms)=2292
+Hull(T=4.000000)={[-0.714023, -0.525008],[-0.138097, 0.664957]}
+B1=(-0.619515, 0.263430) +- (0.094507, 0.401527)
 wmax(B1)=0.803054
-#(C)=293  #E0=293  max_{B in C} wmax(B)=0.098837
+#(C)=144  #E0=144  max_{B in C} wmax(B)=0.099546

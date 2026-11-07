@@ -22,7 +22,7 @@
 %   rotated-square outline (black) at that instant.
 %
 % Data: moore_runs/<label>/E1.txt produced by ivp2026 (EndCover mode),
-%   examples/eg10Moore.mk  (n=2, ff = y,-x, cen=(1,0), wid=(0.05,0.05))
+%   src/examples/eg10Moore.mk  (n=2, ff = y,-x, cen=(1,0), wid=(0.05,0.05))
 
 clear; clc; close all;
 

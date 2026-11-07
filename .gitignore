@@ -1,19 +1,17 @@
 # local build configuration (never shipped)
 config.mk
 
-# build products
-EnCorelib
-EnCorelib.exe
-Encoretraj
-Encoretraj.exe
-capdref
-capdref.exe
-Encoreaudit
-Encoreaudit.exe
-extras/moore_direct_test
-extras/moore_direct_test.exe
-extras/moore_endcover_direct
-extras/moore_endcover_direct.exe
+# build products in the top directory (the prebuilt ones live in bin/)
+/EndCorelib
+/EndCorelib.exe
+/EndCoretraj
+/EndCoretraj.exe
+/capdref
+/capdref.exe
+/EndCoreaudit
+/EndCoreaudit.exe
+/extras/moore_direct_test
+/extras/moore_endcover_direct
 build_cmake/
 *.o
 

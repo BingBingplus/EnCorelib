@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # ===========================================================================
-#  doc/run_examples.sh  --  regenerate the program output shown in the user
+#  src/doc/run_examples.sh  --  regenerate the program output shown in the user
 #                            guide (doc/userguide.tex)
 #
-#      bash doc/run_examples.sh            the short examples (about 5 min)
-#      LONG=1 bash doc/run_examples.sh     also the Lorenz runs (5 more min)
+#      bash src/doc/run_examples.sh            the short examples (about 5 min)
+#      LONG=1 bash src/doc/run_examples.sh     also the Lorenz runs (5 more min)
 #
 #  Every example writes doc/out/<name>.txt: the command as it is typed,
 #  after "$ ", followed by what it printed.  The guide includes these files
@@ -17,8 +17,8 @@
 set -u
 export LC_ALL=C           # messages of make and the shell in English
 
-cd "$(dirname "$0")/.." || exit 1
-make --no-print-directory -s EnCorelib >/dev/null || { echo "build first: make" >&2; exit 1; }
+cd "$(dirname "$0")/../.." || exit 1
+make --no-print-directory -s EndCorelib >/dev/null || { echo "build first: make" >&2; exit 1; }
 
 OUT=doc/out
 mkdir -p "$OUT"
@@ -37,26 +37,26 @@ LVBOX='0.9 1.1  2.9 3.1'
 
 echo "short examples"
 ex  check          'make check'
-ex2 usage          './EnCorelib'
+ex2 usage          './EndCorelib'
 ex  quickstart     'make run-eg1Volterra'
 ex  showargs       'make show-args EG=src/examples/eg1Volterra.mk'
-ex  cli_eg1        "./EnCorelib $LV 1.0 20 4 0  $LVBOX"
+ex  cli_eg1        "./EndCorelib $LV 1.0 20 4 0  $LVBOX"
 ex  lorenz_T2      'make run EG=src/examples/eg5Lorenz.mk T=2'
 ex  boundary       'make run-boundary-eg1Volterra'
 
 # a problem of one's own (section 4 of the guide)
 ex  pendulum       'make run EG=src/examples/dampedPendulum.mk'
 ex2 pendulum_debug 'make run EG=src/examples/dampedPendulum.mk eps=0.05 debug=1'
-ex  sci            './EnCorelib 1 0 0 0 0 2 x y y "-sin(x)-2e-1*y" 0.1 20 10 0  0.9 1.1  -0.1 0.1'
-ex2 parse_error    './EnCorelib 1 0 0 0 0 2 x y y "-sin(x)-0.2*Y" 0.1 20 10 0  0.9 1.1  -0.1 0.1'
+ex  sci            './EndCorelib 1 0 0 0 0 2 x y y "-sin(x)-2e-1*y" 0.1 20 10 0  0.9 1.1  -0.1 0.1'
+ex2 parse_error    './EndCorelib 1 0 0 0 0 2 x y y "-sin(x)-0.2*Y" 0.1 20 10 0  0.9 1.1  -0.1 0.1'
 
 # progress reports (section 5)
-ex2 debug1         "./EnCorelib $LV 0.5 20 4 1  $LVBOX"
-ex2 debug2         "./EnCorelib $LV 0.5 20 4 2  $LVBOX"
-ex2 debug3         "./EnCorelib $LV 0.5 20 4 3  $LVBOX"
+ex2 debug1         "./EndCorelib $LV 0.5 20 4 1  $LVBOX"
+ex2 debug2         "./EndCorelib $LV 0.5 20 4 2  $LVBOX"
+ex2 debug3         "./EndCorelib $LV 0.5 20 4 3  $LVBOX"
 
 # output files (section 3) and the data of the two figures
-ex  files          "./EnCorelib 3 0 0 0 0 2 x y 2*x-2*x*y -y+x*y 0.1 20 4 0  $LVBOX"
+ex  files          "./EndCorelib 3 0 0 0 0 2 x y 2*x-2*x*y -y+x*y 0.1 20 4 0  $LVBOX"
 mkdir -p "$OUT/eg1_eps0.1" && cp E0.txt E1.txt convex_hull.txt "$OUT/eg1_eps0.1/"
 ex  files_head     'head -n 3 E1.txt'
 ex  files_log      'tail -n 2 out.txt'
@@ -73,4 +73,4 @@ if [ "${LONG:-0}" = "1" ]; then
   ex2 lorenz_T100      'make run EG=src/examples/eg5Lorenz.mk T=100 stepB=3 debug=1'
 fi
 
-echo "figures:  python3 doc/make_figures.py"
+echo "figures:  python3 src/doc/make_figures.py"

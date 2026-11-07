@@ -1,52 +1,132 @@
-$ make run EG=examples/eg5Lorenz.mk T=100 stepB=3 debug=1
-EnCorelib  mode=EndCover  method=tube  stepB=lohnerHO  tubedegree=1  order=20  n=3
+$ make run EG=src/examples/eg5Lorenz.mk T=100 stepB=3 debug=1
+EndCorelib  mode=EndCover  method=tube  stepB=lohnerHO  tubedegree=1  order=20  n=3
          f  = (-10*x+10*y, 28*x-y-x*z, (-8/3)*z+x*y)
          B0 = {[14.999, 15.001],[14.999, 15.001],[35.999, 36.001]}   H=100   eps=1
      time    run depth  wmax(B) wmax(E_m) queue    done  outcome
-     0.4s      1     0  2.0e-03         -     8    0.0%  failed: Extend: StepB cannot advance at t=3.83076 (H=100), split into 8
-     0.8s      2     1  1.0e-03         -    15    0.0%  failed: Extend: StepB cannot advance at t=4.60846 (H=100), split into 8
-     1.3s      3     2  5.0e-04         -    22    0.0%  failed: Extend: StepB cannot advance at t=5.45192 (H=100), split into 8
-     1.8s      4     3  2.5e-04         -    29    0.0%  failed: Extend: StepB cannot advance at t=6.21001 (H=100), split into 8
-     2.4s      5     4  1.2e-04         -    36    0.0%  failed: Extend: StepB cannot advance at t=7.00161 (H=100), split into 8
-     3.1s      6     5  6.2e-05         -    43    0.0%  failed: Extend: StepB cannot advance at t=7.74072 (H=100), split into 8
-     3.8s      7     6  3.1e-05         -    50    0.0%  failed: Extend: StepB cannot advance at t=8.58075 (H=100), split into 8
-     4.6s      8     7  1.6e-05         -    57    0.0%  failed: Extend: StepB cannot advance at t=8.68634 (H=100), split into 8
-     5.4s      9     8  7.8e-06         -    64    0.0%  failed: Extend: StepB cannot advance at t=8.70801 (H=100), split into 8
-     6.2s     10     9  3.9e-06         -    71    0.0%  failed: Extend: StepB cannot advance at t=8.97363 (H=100), split into 8
-     7.1s     11    10  2.0e-06         -    78    0.0%  failed: Extend: StepB cannot advance at t=9.50879 (H=100), split into 8
-     8.1s     12    11  9.8e-07         -    85    0.0%  failed: Extend: StepB cannot advance at t=10.5101 (H=100), split into 8
-     9.2s     13    12  4.9e-07         -    92    0.0%  failed: Extend: StepB cannot advance at t=12.0644 (H=100), split into 8
-    10.3s     14    13  2.4e-07         -    99    0.0%  failed: Extend: StepB cannot advance at t=12.8594 (H=100), split into 8
-    11.4s     15    14  1.2e-07         -   106    0.0%  failed: Extend: StepB cannot advance at t=13.7885 (H=100), split into 8
-    12.8s     16    15  6.1e-08         -   113    0.0%  failed: Extend: StepB cannot advance at t=14.8831 (H=100), split into 8
-    14.3s     17    16  3.1e-08         -   120    0.0%  failed: Extend: StepB cannot advance at t=15.9163 (H=100), split into 8
-    15.8s     18    17  1.5e-08         -   127    0.0%  failed: Extend: StepB cannot advance at t=16.7625 (H=100), split into 8
-    17.3s     19    18  7.6e-09         -   134    0.0%  failed: Extend: StepB cannot advance at t=17.4754 (H=100), split into 8
-    19.2s     20    19  3.8e-09         -   141    0.0%  failed: Extend: StepB cannot advance at t=18.3845 (H=100), split into 8
-    20.8s     21    20  1.9e-09         -   148    0.0%  failed: Extend: StepB cannot advance at t=19.127 (H=100), split into 8
-    22.4s     22    21  9.5e-10         -   155    0.0%  failed: Extend: StepB cannot advance at t=19.7839 (H=100), split into 8
-    24.1s     23    22  4.8e-10         -   162    0.0%  failed: Extend: StepB cannot advance at t=20.6182 (H=100), split into 8
-    25.8s     24    23  2.4e-10         -   169    0.0%  failed: Extend: StepB cannot advance at t=21.2234 (H=100), split into 8
-    27.6s     25    24  1.2e-10         -   176    0.0%  failed: Extend: StepB cannot advance at t=22.0624 (H=100), split into 8
-    29.5s     26    25  6.0e-11         -   183    0.0%  failed: Extend: StepB cannot advance at t=22.2977 (H=100), split into 8
-    31.4s     27    26  3.0e-11         -   190    0.0%  failed: Extend: StepB cannot advance at t=22.951 (H=100), split into 8
-    33.3s     28    27  1.5e-11         -   197    0.0%  failed: Extend: StepB cannot advance at t=23.8743 (H=100), split into 8
-    35.2s     29    28  7.5e-12         -   204    0.0%  failed: Extend: StepB cannot advance at t=24.4818 (H=100), split into 8
-    37.4s     30    29  3.7e-12         -   211    0.0%  failed: Extend: StepB cannot advance at t=24.6143 (H=100), split into 8
-    39.6s     31    30  1.9e-12         -   218    0.0%  failed: Extend: StepB cannot advance at t=24.7747 (H=100), split into 8
-    41.8s     32    31  9.3e-13         -   225    0.0%  failed: Extend: StepB cannot advance at t=25.1625 (H=100), split into 8
-    44.0s     33    32  4.7e-13         -   232    0.0%  failed: Extend: StepB cannot advance at t=25.6113 (H=100), split into 8
-    46.2s     34    33  2.3e-13         -   239    0.0%  failed: Extend: StepB cannot advance at t=26.0187 (H=100), split into 8
-    48.3s     35    34  1.2e-13         -   246    0.0%  failed: Extend: StepB cannot advance at t=26.3337 (H=100), split into 8
-    50.5s     36    35  5.7e-14         -   253    0.0%  failed: Extend: StepB cannot advance at t=26.6283 (H=100), split into 8
-    52.6s     37    36  2.8e-14         -   260    0.0%  failed: Extend: StepB cannot advance at t=26.6501 (H=100), split into 8
-    54.7s     38    37  1.4e-14         -   267    0.0%  failed: Extend: StepB cannot advance at t=25.9628 (H=100), split into 8
-    57.1s     39    38  7.1e-15         -   270    0.0%  failed: Extend: StepB cannot advance at t=26.5727 (H=100), split into 4
-    59.3s     40    39  7.1e-15         -   273    0.0%  failed: Extend: StepB cannot advance at t=26.5367 (H=100), split into 4
-    61.5s     41    40  7.1e-15         -   272    0.0%  failed: Extend: StepB cannot advance at t=26.583 (H=100)
-[EndCover failed] Extend: StepB cannot advance at t=26.583 (H=100)
-The sub-box of B0 on which this happened is a single point (depth 40 of the subdivision),
-so subdividing B0 further cannot help: the solution through that point
-cannot be enclosed up to the horizon.
+     0.4s      1     0  2.0e-03         -     2    0.0%  split: Extend: StepB cannot advance at t=3.83076 (H=100)
+     0.8s      2     1  2.0e-03         -     3    0.0%  split: Extend: StepB cannot advance at t=4.01253 (H=100)
+     1.3s      3     2  2.0e-03         -     4    0.0%  split: Extend: StepB cannot advance at t=4.34386 (H=100)
+     1.8s      4     3  1.0e-03         -     5    0.0%  split: Extend: StepB cannot advance at t=4.67736 (H=100)
+     2.2s      5     4  1.0e-03         -     6    0.0%  split: Extend: StepB cannot advance at t=4.76756 (H=100)
+     2.7s      6     5  1.0e-03         -     7    0.0%  split: Extend: StepB cannot advance at t=5.20962 (H=100)
+     3.5s      7     6  5.0e-04         -     8    0.0%  split: Extend: StepB cannot advance at t=5.45916 (H=100)
+     4.8s      8     7  5.0e-04         -     9    0.0%  split: Extend: StepB cannot advance at t=5.72742 (H=100)
+     6.1s      9     8  5.0e-04         -    10    0.0%  split: Extend: StepB cannot advance at t=6.03556 (H=100)
+     7.3s     10     9  2.5e-04         -    11    0.0%  split: Extend: StepB cannot advance at t=6.17486 (H=100)
+     8.9s     11    10  2.5e-04         -    12    0.0%  split: Extend: StepB cannot advance at t=6.25838 (H=100)
+    10.1s     12    11  2.5e-04         -    13    0.0%  split: Extend: StepB cannot advance at t=6.66166 (H=100)
+    11.5s     13    12  1.3e-04         -    14    0.0%  split: Extend: StepB cannot advance at t=6.8606 (H=100)
+    12.9s     14    13  1.3e-04         -    15    0.0%  split: Extend: StepB cannot advance at t=7.11129 (H=100)
+    14.2s     15    14  1.3e-04         -    16    0.0%  split: Extend: StepB cannot advance at t=7.66038 (H=100)
+    15.9s     16    15  6.3e-05         -    17    0.0%  split: Extend: StepB cannot advance at t=7.74682 (H=100)
+    17.3s     17    16  6.3e-05         -    18    0.0%  split: Extend: StepB cannot advance at t=7.7736 (H=100)
+    18.6s     18    17  6.3e-05         -    19    0.0%  split: Extend: StepB cannot advance at t=7.84399 (H=100)
+    20.0s     19    18  3.1e-05         -    20    0.0%  split: Extend: StepB cannot advance at t=8.03947 (H=100)
+    21.6s     20    19  3.1e-05         -    21    0.0%  split: Extend: StepB cannot advance at t=8.31982 (H=100)
+    23.5s     21    20  3.1e-05         -    22    0.0%  split: Extend: StepB cannot advance at t=8.44369 (H=100)
+    25.0s     22    21  1.6e-05         -    23    0.0%  split: Extend: StepB cannot advance at t=8.82945 (H=100)
+    26.9s     23    22  1.6e-05         -    24    0.0%  split: Extend: StepB cannot advance at t=9.16023 (H=100)
+    28.3s     24    23  1.6e-05         -    25    0.0%  split: Extend: StepB cannot advance at t=8.3608 (H=100)
+    29.9s     25    24  7.8e-06         -    26    0.0%  split: Extend: StepB cannot advance at t=8.76428 (H=100)
+    32.0s     26    25  7.8e-06         -    27    0.0%  split: Extend: StepB cannot advance at t=10.0006 (H=100)
+    34.1s     27    26  7.8e-06         -    28    0.0%  split: Extend: StepB cannot advance at t=10.0696 (H=100)
+    36.1s     28    27  3.9e-06         -    29    0.0%  split: Extend: StepB cannot advance at t=10.3278 (H=100)
+    38.1s     29    28  3.9e-06         -    30    0.0%  split: Extend: StepB cannot advance at t=10.6195 (H=100)
+    40.1s     30    29  3.9e-06         -    31    0.0%  split: Extend: StepB cannot advance at t=10.8076 (H=100)
+    42.4s     31    30  2.0e-06         -    32    0.0%  split: Extend: StepB cannot advance at t=11.4478 (H=100)
+    44.5s     32    31  2.0e-06         -    33    0.0%  split: Extend: StepB cannot advance at t=11.5455 (H=100)
+    46.4s     33    32  2.0e-06         -    34    0.0%  split: Extend: StepB cannot advance at t=11.6236 (H=100)
+    48.5s     34    33  9.8e-07         -    35    0.0%  split: Extend: StepB cannot advance at t=11.8107 (H=100)
+    50.6s     35    34  9.8e-07         -    36    0.0%  split: Extend: StepB cannot advance at t=12.1907 (H=100)
+    52.8s     36    35  9.8e-07         -    37    0.0%  split: Extend: StepB cannot advance at t=12.2144 (H=100)
+    54.9s     37    36  4.9e-07         -    38    0.0%  split: Extend: StepB cannot advance at t=12.4153 (H=100)
+    57.1s     38    37  4.9e-07         -    39    0.0%  split: Extend: StepB cannot advance at t=12.7952 (H=100)
+    59.6s     39    38  4.9e-07         -    40    0.0%  split: Extend: StepB cannot advance at t=13.0995 (H=100)
+    62.0s     40    39  2.4e-07         -    41    0.0%  split: Extend: StepB cannot advance at t=13.2059 (H=100)
+    64.7s     41    40  2.4e-07         -    42    0.0%  split: Extend: StepB cannot advance at t=13.2476 (H=100)
+    66.9s     42    41  2.4e-07         -    43    0.0%  split: Extend: StepB cannot advance at t=13.3378 (H=100)
+    69.0s     43    42  1.2e-07         -    44    0.0%  split: Extend: StepB cannot advance at t=13.547 (H=100)
+    71.2s     44    43  1.2e-07         -    45    0.0%  split: Extend: StepB cannot advance at t=13.7261 (H=100)
+    73.8s     45    44  1.2e-07         -    46    0.0%  split: Extend: StepB cannot advance at t=13.8575 (H=100)
+    75.9s     46    45  6.1e-08         -    47    0.0%  split: Extend: StepB cannot advance at t=13.8983 (H=100)
+    78.4s     47    46  6.1e-08         -    48    0.0%  split: Extend: StepB cannot advance at t=14.2091 (H=100)
+    80.8s     48    47  6.1e-08         -    49    0.0%  split: Extend: StepB cannot advance at t=14.4926 (H=100)
+    83.6s     49    48  3.1e-08         -    50    0.0%  split: Extend: StepB cannot advance at t=15.0016 (H=100)
+    86.2s     50    49  3.1e-08         -    51    0.0%  split: Extend: StepB cannot advance at t=15.2918 (H=100)
+    89.1s     51    50  3.1e-08         -    52    0.0%  split: Extend: StepB cannot advance at t=15.712 (H=100)
+    91.6s     52    51  1.5e-08         -    53    0.0%  split: Extend: StepB cannot advance at t=16.1481 (H=100)
+    94.0s     53    52  1.5e-08         -    54    0.0%  split: Extend: StepB cannot advance at t=16.229 (H=100)
+    97.1s     54    53  1.5e-08         -    55    0.0%  split: Extend: StepB cannot advance at t=16.2849 (H=100)
+   100.1s     55    54  7.6e-09         -    56    0.0%  split: Extend: StepB cannot advance at t=16.3365 (H=100)
+   102.6s     56    55  7.6e-09         -    57    0.0%  split: Extend: StepB cannot advance at t=16.3706 (H=100)
+   105.0s     57    56  7.6e-09         -    58    0.0%  split: Extend: StepB cannot advance at t=16.4209 (H=100)
+   107.9s     58    57  3.8e-09         -    59    0.0%  split: Extend: StepB cannot advance at t=16.4997 (H=100)
+   110.7s     59    58  3.8e-09         -    60    0.0%  split: Extend: StepB cannot advance at t=16.5433 (H=100)
+   113.6s     60    59  3.8e-09         -    61    0.0%  split: Extend: StepB cannot advance at t=16.6747 (H=100)
+   116.4s     61    60  1.9e-09         -    62    0.0%  split: Extend: StepB cannot advance at t=16.8638 (H=100)
+   119.2s     62    61  1.9e-09         -    63    0.0%  split: Extend: StepB cannot advance at t=16.982 (H=100)
+   122.1s     63    62  1.9e-09         -    64    0.0%  split: Extend: StepB cannot advance at t=17.1569 (H=100)
+   124.9s     64    63  9.5e-10         -    65    0.0%  split: Extend: StepB cannot advance at t=17.5914 (H=100)
+   127.9s     65    64  9.5e-10         -    66    0.0%  split: Extend: StepB cannot advance at t=17.878 (H=100)
+   130.8s     66    65  9.5e-10         -    67    0.0%  split: Extend: StepB cannot advance at t=18.2907 (H=100)
+   133.9s     67    66  4.8e-10         -    68    0.0%  split: Extend: StepB cannot advance at t=18.9614 (H=100)
+   137.2s     68    67  4.8e-10         -    69    0.0%  split: Extend: StepB cannot advance at t=19.2961 (H=100)
+   140.6s     69    68  4.8e-10         -    70    0.0%  split: Extend: StepB cannot advance at t=19.7825 (H=100)
+   144.3s     70    69  2.4e-10         -    71    0.0%  split: Extend: StepB cannot advance at t=20.4242 (H=100)
+   148.2s     71    70  2.4e-10         -    72    0.0%  split: Extend: StepB cannot advance at t=20.3778 (H=100)
+   151.9s     72    71  2.4e-10         -    73    0.0%  split: Extend: StepB cannot advance at t=21.1714 (H=100)
+   155.4s     73    72  1.2e-10         -    74    0.0%  split: Extend: StepB cannot advance at t=20.8285 (H=100)
+   159.2s     74    73  1.2e-10         -    75    0.0%  split: Extend: StepB cannot advance at t=21.4109 (H=100)
+   162.6s     75    74  1.2e-10         -    76    0.0%  split: Extend: StepB cannot advance at t=21.4438 (H=100)
+   166.2s     76    75  6.0e-11         -    77    0.0%  split: Extend: StepB cannot advance at t=21.4807 (H=100)
+   169.5s     77    76  6.0e-11         -    78    0.0%  split: Extend: StepB cannot advance at t=21.5204 (H=100)
+   173.1s     78    77  6.0e-11         -    79    0.0%  split: Extend: StepB cannot advance at t=21.5881 (H=100)
+   176.4s     79    78  3.0e-11         -    80    0.0%  split: Extend: StepB cannot advance at t=21.5659 (H=100)
+   179.9s     80    79  3.0e-11         -    81    0.0%  split: Extend: StepB cannot advance at t=21.6444 (H=100)
+   183.8s     81    80  3.0e-11         -    82    0.0%  split: Extend: StepB cannot advance at t=21.799 (H=100)
+   187.2s     82    81  1.5e-11         -    83    0.0%  split: Extend: StepB cannot advance at t=21.7163 (H=100)
+   190.8s     83    82  1.5e-11         -    84    0.0%  split: Extend: StepB cannot advance at t=21.7669 (H=100)
+   194.9s     84    83  1.5e-11         -    85    0.0%  split: Extend: StepB cannot advance at t=21.8828 (H=100)
+   198.8s     85    84  7.5e-12         -    86    0.0%  split: Extend: StepB cannot advance at t=23.3743 (H=100)
+   202.9s     86    85  7.5e-12         -    87    0.0%  split: Extend: StepB cannot advance at t=23.798 (H=100)
+   207.2s     87    86  7.5e-12         -    88    0.0%  split: Extend: StepB cannot advance at t=24.0714 (H=100)
+   211.6s     88    87  3.7e-12         -    89    0.0%  split: Extend: StepB cannot advance at t=23.1567 (H=100)
+   216.2s     89    88  3.7e-12         -    90    0.0%  split: Extend: StepB cannot advance at t=24.9378 (H=100)
+   220.9s     90    89  3.7e-12         -    91    0.0%  split: Extend: StepB cannot advance at t=25.2251 (H=100)
+   225.8s     91    90  1.9e-12         -    92    0.0%  split: Extend: StepB cannot advance at t=25.5254 (H=100)
+   230.0s     92    91  1.9e-12         -    93    0.0%  split: Extend: StepB cannot advance at t=25.6339 (H=100)
+   234.6s     93    92  1.9e-12         -    94    0.0%  split: Extend: StepB cannot advance at t=25.9894 (H=100)
+   238.9s     94    93  9.4e-13         -    95    0.0%  split: Extend: StepB cannot advance at t=26.3424 (H=100)
+   243.7s     95    94  9.3e-13         -    96    0.0%  split: Extend: StepB cannot advance at t=26.396 (H=100)
+   248.8s     96    95  9.3e-13         -    97    0.0%  split: Extend: StepB cannot advance at t=26.4452 (H=100)
+   253.0s     97    96  4.7e-13         -    98    0.0%  split: Extend: StepB cannot advance at t=26.4406 (H=100)
+   258.1s     98    97  4.7e-13         -    99    0.0%  split: Extend: StepB cannot advance at t=26.4702 (H=100)
+   263.6s     99    98  4.7e-13         -   100    0.0%  split: Extend: StepB cannot advance at t=26.4885 (H=100)
+   268.1s    100    99  2.3e-13         -   101    0.0%  split: Extend: StepB cannot advance at t=26.5204 (H=100)
+   272.8s    101   100  2.3e-13         -   102    0.0%  split: Extend: StepB cannot advance at t=26.5482 (H=100)
+   278.0s    102   101  2.3e-13         -   103    0.0%  split: Extend: StepB cannot advance at t=26.4042 (H=100)
+   282.7s    103   102  1.2e-13         -   104    0.0%  split: Extend: StepB cannot advance at t=26.6046 (H=100)
+   287.5s    104   103  1.2e-13         -   105    0.0%  split: Extend: StepB cannot advance at t=26.6305 (H=100)
+   292.9s    105   104  1.2e-13         -   106    0.0%  split: Extend: StepB cannot advance at t=26.5422 (H=100)
+   297.9s    106   105  6.4e-14         -   107    0.0%  split: Extend: StepB cannot advance at t=26.6886 (H=100)
+   302.8s    107   106  5.9e-14         -   108    0.0%  split: Extend: StepB cannot advance at t=26.6902 (H=100)
+   308.3s    108   107  5.9e-14         -   109    0.0%  split: Extend: StepB cannot advance at t=26.7199 (H=100)
+   314.7s    109   108  3.6e-14         -   110    0.0%  split: Extend: StepB cannot advance at t=26.7476 (H=100)
+   320.4s    110   109  3.0e-14         -   111    0.0%  split: Extend: StepB cannot advance at t=26.7664 (H=100)
+   326.3s    111   110  3.0e-14         -   112    0.0%  split: Extend: StepB cannot advance at t=26.7623 (H=100)
+   331.4s    112   111  2.1e-14         -   113    0.0%  split: Extend: StepB cannot advance at t=26.7831 (H=100)
+   336.7s    113   112  1.6e-14         -   114    0.0%  split: Extend: StepB cannot advance at t=26.5078 (H=100)
+   341.4s    114   113  1.6e-14         -   115    0.0%  split: Extend: StepB cannot advance at t=26.5108 (H=100)
+   346.1s    115   114  1.4e-14         -   116    0.0%  split: Extend: StepB cannot advance at t=26.5623 (H=100)
+   351.3s    116   115  8.9e-15         -   117    0.0%  split: Extend: StepB cannot advance at t=26.5739 (H=100)
+   356.1s    117   116  8.9e-15         -   118    0.0%  split: Extend: StepB cannot advance at t=26.5757 (H=100)
+   360.5s    118   117  7.1e-15         -   119    0.0%  split: Extend: StepB cannot advance at t=26.7568 (H=100)
+   365.5s    119   118  7.1e-15         -   120    0.0%  split: Extend: StepB cannot advance at t=26.4064 (H=100)
+   370.8s    120   119  7.1e-15         -   121    0.0%  split: Extend: StepB cannot advance at t=26.413 (H=100)
+   375.4s    121   120  7.1e-15         -   122    0.0%  split: Extend: StepB cannot advance at t=26.4072 (H=100)
+   380.7s    122   121  7.1e-15         -   121    0.0%  stopped: Extend: StepB cannot advance at t=26.4064 (H=100)
+[EndCover stopped] double precision exhausted
+Extend: StepB cannot advance at t=26.4064 (H=100)
+The sub-box of B0 on which this happened (depth 121 of the subdivision) cannot be halved in double precision.
 Try a smaller T.
 make: *** [Makefile:194: run] Error 3

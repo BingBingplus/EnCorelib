@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ===========================================================================
-#  src/tools/run.sh  --  invoke EnCorelib from the Makefile
+#  src/tools/run.sh  --  invoke EndCorelib from the Makefile
 #
 #  The Makefile keeps the variable names and the right-hand sides as single
 #  comma-separated strings (`var`, `ff`).  Expanding them straight into a

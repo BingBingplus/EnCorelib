@@ -1,23 +1,23 @@
 // ===========================================================================
-//  tools/trajectory.cpp  --  Encoretraj
+//  src/tools/trajectory.cpp  --  EndCoretraj
 //
 //  A validated trajectory printer, used for the top row of Figure 1.
 //
-//  It repeatedly applies StepB (the same routine EnCorelib uses)
+//  It repeatedly applies StepB (the same routine EndCorelib uses)
 //  on a uniform time grid and prints one line per grid point:
 //
 //      t   lo_1 hi_1   lo_2 hi_2   ...   lo_n hi_n
 //
-//  Every printed box is a rigorous enclosure of x(t).  Unlike EnCorelib this
+//  Every printed box is a rigorous enclosure of x(t).  Unlike EndCorelib this
 //  tool makes no attempt to control the width: it simply shows where the
 //  validated solution goes, which is exactly what Figure 1 (top right)
 //  displays.  If an enclosure blows up the program stops and says so.
 //
 //  Usage
-//      ./Encoretraj n  var_1..var_n  f_1..f_n  order T dt  lo_1 hi_1 .. lo_n hi_n
+//      ./EndCoretraj n  var_1..var_n  f_1..f_n  order T dt  lo_1 hi_1 .. lo_n hi_n
 //
 //  Example (undamped pendulum from the point (0,2), to t = 20, step 0.02):
-//      ./Encoretraj 2 x y y "-sin(x)" 20 20 0.02  0 0  2 2
+//      ./EndCoretraj 2 x y y "-sin(x)" 20 20 0.02  0 0  2 2
 // ===========================================================================
 
 #include <iostream>
@@ -85,10 +85,10 @@ int main(int argc, char* argv[]) {
         }
         return 0;
     } catch (const std::exception& e) {
-        std::cerr << "Encoretraj: " << e.what() << "\n\n"
-                  << "Usage: Encoretraj n var_1..var_n f_1..f_n order T dt "
+        std::cerr << "EndCoretraj: " << e.what() << "\n\n"
+                  << "Usage: EndCoretraj n var_1..var_n f_1..f_n order T dt "
                      "lo_1 hi_1 .. lo_n hi_n\n"
-                     "e.g.:  Encoretraj 2 x y y \"-sin(x)\" 20 20 0.02  0 0  2 2\n";
+                     "e.g.:  EndCoretraj 2 x y y \"-sin(x)\" 20 20 0.02  0 0  2 2\n";
         return 2;
     }
 }

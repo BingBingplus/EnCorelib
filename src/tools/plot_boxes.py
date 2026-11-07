@@ -4,7 +4,7 @@
     python src/tools/plot_boxes.py <dir> [--title "Eg1, H=4"] [--save fig.png]
 
 <dir> must contain E0.txt (the initial sub-boxes) and E1.txt (the cover C
-at time H), i.e. the output of `EnCorelib` at output level 3 or above --
+at time H), i.e. the output of `EndCorelib` at output level 3 or above --
 see src/repro/figure4.sh.
 
 n = 2   two panels: the subdivision of B0 on top, the end-cover below.

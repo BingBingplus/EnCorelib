@@ -1,14 +1,14 @@
-// moore_endcover_direct.cpp  --  standalone diagnostic (not part of EnCorelib)
+// moore_endcover_direct.cpp  --  standalone diagnostic (not part of EndCorelib)
 //
 // EndCover on Moore's rotation example x' = y, y' = -x with stepB = 3, the
 // StepB variant with the higher-order a-priori enclosure and without the
-// ball of Lemma 2.1.  It runs the same scaffold driver as EnCorelib
+// ball of Lemma 2.1.  It runs the same scaffold driver as EndCorelib
 // (runScaffold: Extend to the horizon, then Refine) and writes the cover
 // under a label, so that runs for several end times T can be compared.
 //
 // Usage: moore_endcover_direct <T> <eps> <degree> <label>
 // Output: E0_<label>.txt, E1_<label>.txt (the "Box n: [..] x [..]" format
-// of EnCorelib; line k of E0 is the sub-box whose end-enclosure is line k
+// of EndCorelib; line k of E0 is the sub-box whose end-enclosure is line k
 // of E1).
 
 #include <iostream>
@@ -35,19 +35,6 @@ static void saveBoxes(const std::vector<IVector>& boxes, const std::string& fnam
     }
 }
 
-static Scaffold makeInitialStage(const IVector& B, double delta, double T_hint) {
-    MiniScaffold G;
-    G.mu   = {1000.0};
-    G.delta = delta;
-    G.hTube = T_hint;
-    G.ell   = 0;
-    G.E   = {B};
-    G.F   = {B};
-    G.nTube = 1;
-    Scaffold S = {{0.0}, {B}, {B}, {G}};
-    return S;
-}
-
 int main(int argc, char** argv) {
     double T      = (argc > 1) ? std::atof(argv[1]) : 0.0;
     double veps   = (argc > 2) ? std::atof(argv[2]) : 0.02;
@@ -64,24 +51,25 @@ int main(int argc, char** argv) {
     B[1] = interval(-0.05, 0.05);
 
     const double delta = veps / 10.0;
-    MiniScaffold G0 = makeInitialStage(B, delta, T).G[0];
+    MiniScaffold G0;
+    G0.mu    = {1000.0};
+    G0.delta = delta;
+    G0.hTube = T;
+    G0.ell   = 0;
+    G0.nTube = 1;
 
-    auto endEnc = [&](const IVector& box, double epsLocal,
-                      const std::vector<double>& target, double Hlocal)
-        -> std::pair<IVector, IVector>
-    {
-        Scaffold S = runScaffold(box, F, G0, epsLocal, delta, degree, Hlocal,
-                                 REFINE_TUBE, stepB_type, /*tubedegree*/ 1,
-                                 debuglevel, n, target);
-        return {S.E.front(), S.E.back()};
+    const endcover::ScaffoldRun run = [&](Scaffold& S) {
+        return runScaffold(S, F, veps, delta, degree, T,
+                           REFINE_TUBE, stepB_type, /*tubedegree*/ 1,
+                           debuglevel, n);
     };
 
     auto t0 = std::chrono::high_resolution_clock::now();
     endcover::EndCoverResult coverAtT;
     try {
-        coverAtT = endcover::EndCover(B, veps, T, endEnc, 4000000);
+        coverAtT = endcover::EndCover(B, G0, run, 4000000);
     } catch (const std::exception& ex) {
-        std::cerr << "[EndCover failed] T=" << T << " : " << ex.what() << "\n";
+        std::cerr << "[EndCover stopped] T=" << T << " : " << ex.what() << "\n";
         return 3;
     }
     auto t1 = std::chrono::high_resolution_clock::now();

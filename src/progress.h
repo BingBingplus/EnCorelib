@@ -2,15 +2,15 @@
 // ===========================================================================
 //  progress.h  --  progress reports while EndCover runs
 //
-//  The `debug` argument of EnCorelib chooses how much is reported.  Each
+//  The `debug` argument of EndCorelib chooses how much is reported.  Each
 //  level adds to the one below it:
 //
 //      0   nothing
-//      1   one line for every sub-box B of B0 that EndCover has processed,
-//          in columns: its number, its depth in the subdivision of B0,
-//          wmax(B), wmax of its end-enclosure, the number of sub-boxes still
-//          queued, the share of B0 resolved so far, and the outcome
-//          (resolved, split, or failed and at which time)
+//      1   one line for every scaffold that EndCover has taken from its
+//          queue, in columns: its number, the depth of its initial box B in
+//          the subdivision of B0, wmax(B), wmax of its end-enclosure, the
+//          number of scaffolds still queued, the share of B0 covered so far,
+//          and the outcome (resolved, or split and at which time)
 //      2   one line for every scaffold laid out to the horizon and for
 //          every pass of Refine
 //      3   one line for every stage appended by Extend (t_i, the stage

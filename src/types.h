@@ -24,8 +24,9 @@
 //        S.G                Scaffold::G          refinement data G1..Gm
 //        S.m                Scaffold::m()        number of stages
 //        S.T                Scaffold::T()        current final time = t.back()
+//      Init(B)            Init()                 the 0-stage scaffold (Sec. 3.3)
 //
-//      G[i] = ((l_i, E^i, F^i), mu^i, (delta_i, h^i_euler))
+//      G[i] =((l_i, E^i, F^i), mu^i, (delta_i, h^i_euler))
 //                         struct MiniScaffold    mini-scaffold      (Sec. 5.1)
 //        l_i                MiniScaffold::ell    refinement level
 //        E^i                MiniScaffold::E      2^l_i + 1 mini end-enclosures
@@ -99,6 +100,26 @@ inline std::vector<double> midpoint(const IVector& B) {
     for (int i = 0; i < B.dimension(); ++i)
         c[static_cast<size_t>(i)] = (B[i].leftBound() + B[i].rightBound()) / 2.0;
     return c;
+}
+
+// The two halves of B along a longest side: lower and upper.  A side can be
+// halved when its midpoint is a double strictly between its end points, so a
+// side of width zero, or one unit in the last place wide, is never chosen.
+// Returns false when no side of B can be halved.
+inline bool halveLongestSide(const IVector& B, IVector& lower, IVector& upper) {
+    int    k = -1;
+    double w = 0.0;
+    for (int i = 0; i < B.dimension(); ++i) {
+        const double a = B[i].leftBound(), b = B[i].rightBound();
+        const double c = (a + b) / 2.0;
+        if (a < c && c < b && b - a > w) { k = i; w = b - a; }
+    }
+    if (k < 0) return false;
+    const double a = B[k].leftBound(), b = B[k].rightBound();
+    const double c = (a + b) / 2.0;
+    lower = B;  lower[k] = interval(a, c);
+    upper = B;  upper[k] = interval(c, b);
+    return true;
 }
 
 // Radius of the smallest ball Ball(B) containing the box B:
@@ -195,6 +216,15 @@ struct Scaffold {
     int    m() const { return static_cast<int>(t.size()) - 1; }  // S.m
     double T() const { return t.back(); }                        // S.T
 };
+
+// Init(B): the 0-stage scaffold with S.E[0] = B          (paper, Subsection 3.3)
+// G0 holds the tube data every new mini-scaffold starts from.
+inline Scaffold Init(const IVector& B, const MiniScaffold& G0) {
+    MiniScaffold G = G0;
+    G.E = {B};
+    G.F = {B};
+    return Scaffold{{0.0}, {B}, {B}, {G}};
+}
 
 // Result of a cover computation.
 //

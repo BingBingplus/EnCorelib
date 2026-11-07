@@ -1,8 +1,4 @@
-EnCorelib  mode=Boundary  method=tube  stepB=lohner  tubedegree=1  order=20  n=3
+EndCorelib  mode=Boundary  method=tube  stepB=lohner  tubedegree=1  order=20  n=3
          f  = (-10*x+10*y, 28*x-y-x*z, (-8/3)*z+x*y)
          B0 = {[14.999, 15.001],[14.999, 15.001],[35.999, 36.001]}   H=4   eps=0.1
-time(ms)=2060048
-Hull(T=4.000000)={[-4.810460, -4.686587],[-0.065078, 0.055715],[29.016466, 29.121945]}
-B1=(-4.748524, -0.004681, 29.069206) +- (0.061936, 0.060396, 0.052739)
-wmax(B1)=0.123873
-#(C)=126  #E0=126  max_{B in C} wmax(B)=0.052940
+stopped after 600 s

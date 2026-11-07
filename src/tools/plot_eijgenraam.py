@@ -10,7 +10,7 @@ Panel (a) shows why no single convex set can enclose the end set tightly:
 the exact end set at T = 1 is the parabola  y = x^2,  |x| <= 1,  and every
 convex enclosure of it contains the midpoint (0,1) of its two endpoints,
 although (0,1) is not on the parabola.  The remaining panels show the
-eps-covers computed by EnCorelib.
+eps-covers computed by EndCorelib.
 
 Requires matplotlib.
 """

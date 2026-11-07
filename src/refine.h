@@ -8,7 +8,7 @@
 //
 //      Bisect(i)        Subsection 5.1  -- halve every mini-step of stage i
 //      EulerTube(i)     Subsection 5.2  -- Theorem 5.1 tube enclosures
-//      Split()          Subsection 5.3  -- shrink S.E[0]
+//      Split()          Subsection 5.3  -- halve S.E[0], split off a scaffold
 //      StageFreeze(i)   equation (5.4)
 //      NeedSplit()      equation (5.5)
 //      CanTerminate()   equation (5.6)
@@ -36,7 +36,7 @@
 //    method = 1 "bisect"     Bisect + Split; the tube is switched off.
 //    method = 2 "splitonly"  Split only.  The stages stay the steps Lohner's
 //                            method took and are not subdivided any further,
-//                            so the accuracy comes from shrinking E_0.
+//                            so the accuracy comes from splitting E_0.
 // ===========================================================================
 
 #include <stdexcept>
@@ -60,7 +60,7 @@ static constexpr int ELL_MAX = 6;
 // ═══════════════════════════════════════════════════════════════════════════
 //  Evaluate : walk the scaffold again, on the grid it already has
 // ═══════════════════════════════════════════════════════════════════════════
-//  Refine changes two things about a scaffold: Split shrinks E_0, and Bisect
+//  Refine changes two things about a scaffold: Split halves E_0, and Bisect
 //  asks for stage i to be crossed in 2^{l_i} mini-steps instead of one.
 //  Evaluate is what makes either of them take effect.  It carries one
 //  doubleton from E_0 along the whole grid and fills, for every stage i and
@@ -270,27 +270,52 @@ inline int EulerTube(Scaffold& S, int idx, int dim, IMap f, int debuglevel) {
 // ═══════════════════════════════════════════════════════════════════════════
 //  Split()                                         (paper, Subsection 5.3)
 // ═══════════════════════════════════════════════════════════════════════════
-//  Halves S.E[0] towards `target` (its midpoint when no target is given).
-//  The complementary part is not stored here: the caller -- EndCover, or the
-//  boundary sweep -- sees that S.E[0] has shrunk and re-queues the remaining
-//  sub-boxes.  Those are the "split-off scaffolds returned by Refine".
-inline void Split(Scaffold& S, int dim, const std::vector<double>& target) {
-    const bool hasTarget = !target.empty() && static_cast<int>(target.size()) == dim;
-    IVector E0(dim);
-    for (int i = 0; i < dim; ++i) {
-        const double lo = S.E[0][i].leftBound();
-        const double hi = S.E[0][i].rightBound();
-        if (hasTarget) {
-            const double t = target[static_cast<size_t>(i)];
-            E0[i] = interval(lo + (t - lo) * 0.5, hi - (hi - t) * 0.5);
-        } else {
-            E0[i] = interval(lo + (hi - lo) / 4.0, hi - (hi - lo) / 4.0);
+//  Splits S.E[0] into two sub-boxes E0+ and E0- by halving it along a longest
+//  side.  E0+ replaces the initial end-enclosure, S.E[0] <- E0+.  E0- is given
+//  to a new scaffold S', a clone of S except that S'.E[0] <- E0-, which is
+//  collected in Qout; Refine returns Qout and goes on with S.
+//
+//  Returns false, leaving S as it is, when no side of S.E[0] can be halved in
+//  double precision.
+inline bool Split(Scaffold& S, std::vector<Scaffold>& Qout) {
+    IVector plus, minus;
+    if (!halveLongestSide(S.E[0], plus, minus)) return false;
+
+    Qout.push_back(S);
+    Scaffold& clone = Qout.back();
+    clone.E[0]      = minus;
+    clone.F[0]      = minus;
+    clone.G[0].E[0] = minus;
+    clone.G[0].F[0] = minus;
+
+    S.E[0]      = plus;
+    S.F[0]      = plus;
+    S.G[0].E[0] = plus;
+    S.G[0].F[0] = plus;
+    return true;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  Reevaluate : the scaffold after its E_0 has changed
+// ═══════════════════════════════════════════════════════════════════════════
+//  Split replaces E_0 by one of its halves, in S and in the clone.  Bisect's
+//  work lives in the time grid, so the grid is kept as soon as there is any
+//  refinement in it and Evaluate walks it again from the new E_0; otherwise
+//  the smaller box gets a grid of its own.  Returns true when the grid was
+//  laid out anew.
+inline bool Reevaluate(Scaffold& S, IMap f, SolutionChain& chain, double eps0,
+                       int degree, int stepBtype, int tubedegree, int dim,
+                       int debuglevel)
+{
+    for (int i = 1; i <= S.m(); ++i) {
+        if (S.G[static_cast<size_t>(i)].ell > 0) {
+            Evaluate(S, f, chain, degree, stepBtype, dim, eps0);
+            return false;
         }
     }
-    S.E[0]      = E0;
-    S.F[0]      = E0;
-    S.G[0].E[0] = E0;
-    S.G[0].F[0] = E0;
+    RebuildScaffold(f, S, chain, eps0, S.G[0].delta, degree, stepBtype,
+                    tubedegree, dim, debuglevel);
+    return true;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -361,25 +386,25 @@ inline bool CanTerminate(const std::vector<char>& freezeFlag, bool needSplit) {
 //  method      RefineMethod, see the enum above
 //  eps0        Refine returns once wmax(S.E.back()) <= eps0
 //  debuglevel  2 = one line per pass of the main loop; see progress.h
-//  target      contraction point for Split()
-inline void Refine(Scaffold& S,
-                   int dim,
-                   IMap f,
-                   SolutionChain& chain,
-                   int method,
-                   int stepBtype,
-                   int degree,
-                   double eps0,
-                   int tubedegree,
-                   int debuglevel,
-                   const std::vector<double>& target = {})
+//
+//  Returns Qout, the scaffolds split off by Split().
+inline std::vector<Scaffold> Refine(Scaffold& S,
+                                    int dim,
+                                    IMap f,
+                                    SolutionChain& chain,
+                                    int method,
+                                    int stepBtype,
+                                    int degree,
+                                    double eps0,
+                                    int tubedegree,
+                                    int debuglevel)
 {
-    const bool   useBisect = (method == REFINE_TUBE || method == REFINE_BISECT);
-    const bool   useTube   = (method == REFINE_TUBE);
-    const bool   splitOnly = !useBisect && !useTube;
-    const double delta     = S.G[0].delta;
+    const bool useBisect = (method == REFINE_TUBE || method == REFINE_BISECT);
+    const bool useTube   = (method == REFINE_TUBE);
+    const bool splitOnly = !useBisect && !useTube;
 
-    if (wmax(S.E.back()) <= eps0) return;
+    std::vector<Scaffold> Qout;
+    if (wmax(S.E.back()) <= eps0) return Qout;
 
     int m = S.m();
     std::vector<char> freezeFlag(static_cast<size_t>(m) + 1, 0);
@@ -396,22 +421,18 @@ inline void Refine(Scaffold& S,
         }
     };
 
-    // Split has shrunk E_0, so the scaffold is evaluated once more.  Bisect's
-    // work lives in the time grid, so the grid is kept as soon as there is any
-    // refinement in it; otherwise the smaller box gets a grid of its own.
-    auto reevaluate = [&]() {
-        bool refined = false;
-        for (int i = 1; i <= m; ++i)
-            if (S.G[static_cast<size_t>(i)].ell > 0) { refined = true; break; }
-        if (refined) {
-            Evaluate(S, f, chain, degree, stepBtype, dim, eps0);
-        } else {
-            RebuildScaffold(f, S, chain, eps0, delta, degree, stepBtype,
-                            tubedegree, dim, debuglevel);
+    // Qout.push(S.Split()), and the scaffold is evaluated from its new E_0.
+    // False when E_0 cannot be halved.
+    int nSplit = 0;
+    auto split = [&]() {
+        if (!Split(S, Qout)) return false;
+        ++nSplit;
+        if (Reevaluate(S, f, chain, eps0, degree, stepBtype, tubedegree, dim, debuglevel)) {
             m = S.m();
             freezeFlag.assign(static_cast<size_t>(m) + 1, 0);
         }
         tubes();
+        return true;
     };
 
     tubes();
@@ -420,7 +441,8 @@ inline void Refine(Scaffold& S,
     while (eps0 < wmax(S.E.back())) {
         const double before = wmax(S.E.back());
         ++pass;
-        int nBisected = 0, nSplit = 0;
+        int nBisected = 0;
+        nSplit = 0;
 
         // ---- Part A : refine every stage that is not frozen --------------
         bool bisected = false;
@@ -469,32 +491,21 @@ inline void Refine(Scaffold& S,
         if (bisected) Evaluate(S, f, chain, degree, stepBtype, dim, eps0);
         tubes();
 
+        bool halved = true;
+
         // ---- Part B : split check, equation (5.5) ------------------------
         // With Split as the only operator the criterion does not gate it.
         const bool needSplit = splitOnly ? true : NeedSplit(S, eps0, dim);
-        if (needSplit) {
-            if (wmax(S.E[0]) == 0.0) break;     // E_0 is a point
-            Split(S, dim, target);
-            ++nSplit;
-            reevaluate();
-        }
+        if (needSplit) halved = split();
 
         // ---- Part C : terminate check, equation (5.6) --------------------
-        if (CanTerminate(freezeFlag, needSplit) && eps0 < wmax(S.E.back())) {
-            if (wmax(S.E[0]) == 0.0) break;
-            Split(S, dim, target);
-            ++nSplit;
-            reevaluate();
-        }
+        if (halved && CanTerminate(freezeFlag, needSplit) && eps0 < wmax(S.E.back()))
+            halved = split();
 
         // (5.4)-(5.6) are sufficient conditions; Split also runs when a pass
         // has neither split nor narrowed the scaffold.
-        if (!needSplit && !(wmax(S.E.back()) < before)) {
-            if (wmax(S.E[0]) == 0.0) break;
-            Split(S, dim, target);
-            ++nSplit;
-            reevaluate();
-        }
+        if (halved && !needSplit && !(wmax(S.E.back()) < before))
+            halved = split();
 
         if (debuglevel >= progress::REFINE) {
             int nFrozen = 0;
@@ -509,5 +520,9 @@ inline void Refine(Scaffold& S,
                              + " frozen=" + std::to_string(nFrozen)
                              + " splits=" + std::to_string(nSplit));
         }
+
+        // E_0 cannot be halved in double precision.
+        if (!halved) break;
     }
+    return Qout;
 }

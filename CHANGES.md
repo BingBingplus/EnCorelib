@@ -26,18 +26,13 @@ Changes since the first public version (September 2026).
 
 A per-box check, `make audit` (new), in which every box of C must meet the
 validated images of the centre and the corners of its own sub-box of B0,
-found no violation in 45 settings (the six examples of Table 1, Eijgenraam's
-example and the damped pendulum, with method 0, 1, 2 and stepB 0, 1, 3)
-after these two changes. Before them it found violations in 5 of the 7
+finds no violation in 35 settings (the six examples of Table 1 and
+Eijgenraam's example, with method 0, 1 and 2 at stepB 0 and with method 2 at
+stepB 1 and 3). Before these two changes it found violations in 5 of the 7
 problems it was run on, with method 0 and with method 1.
 
-`make check` passes with its stored values unchanged. `make compare` finds
-18 of the 36 cells of Table 2 as printed (16 with the September version);
-the Lorenz cell H = 4, eps = 0.1, which the September version reported as
-(-4.73, 0.00, 29.01) +- (0.08, 0.07, 0.13), is again the printed
-(-4.75, 0.00, 29.07) +- (0.07, 0.07, 0.07). The corrected tube threshold
-changes no result of the table, but `method = 0` bisects more and is slower
-than before; see section 6 of the user guide.
+With the corrected threshold `method = 0` bisects more and takes longer;
+section 6 of the user guide has the timings.
 
 ### Building
 
@@ -57,29 +52,31 @@ than before; see section 6 of the user guide.
 - A right-hand side that cannot be read is reported with the parser's
   message and exit status 2; before, the program aborted. A failure in
   Boundary mode is reported with exit status 3 instead of aborting.
-- `examples/*.mk` and the scripts in `repro/` write the right-hand sides
+- `src/examples/*.mk` and the scripts in `src/repro/` write the right-hand sides
   multiplied out, the form in which they are evaluated when SymEngine is
   installed and the form the numbers of the paper come from. Results no
   longer depend on whether SymEngine was found: written as
   `10*(y-x), x*(28-z)-y, x*y-8*z/3`, Lorenz to H = 5 with stepB = 0 took
-  585 sub-boxes in a build without SymEngine, and 73 multiplied out.
+  116 scaffolds and 78 boxes in a build without SymEngine, and 95 scaffolds
+  and 64 boxes multiplied out.
 
 ### Progress reports and messages
 
 - `debug` now selects progress reports on standard error: 1, one line per
-  sub-box of B0 (depth, widths, queue, share of B0 done, outcome); 2, also
-  one line per scaffold and per pass of Refine; 3, also one line per stage
-  and the containment self-checks that `debug = 1` used to switch on.
-- Failure messages name the time reached, for example
-  `Extend: StepB cannot advance at t=26.583 (H=100)`. When the sub-box that
-  fails is a single point, the message says that subdividing cannot help
-  and suggests a smaller T.
+  scaffold taken from the queue (depth, widths, queue, share of B0 covered,
+  outcome); 2, also one line per scaffold laid out and per pass of Refine; 3,
+  also one line per stage and the containment self-checks that `debug = 1`
+  used to switch on.
+- Messages name the time reached, for example
+  `Extend: StepB cannot advance at t=26.4064 (H=100)`. When a sub-box of B0
+  can no longer be halved in double precision, the program stops with a
+  message saying so and suggests a smaller T.
 
 ### Documentation
 
 - `doc/userguide.pdf`, with the scripts that regenerate its examples
-  (`doc/run_examples.sh`), its tables (`doc/compare_options.sh`,
-  `doc/make_tables.py`) and its figures (`doc/make_figures.py`).
-- `examples/dampedPendulum.mk`, a problem that is not in the paper.
-- The README called the program `Encorelib`; the Makefile builds
-  `EnCorelib`, which matters on case-sensitive file systems.
+  (`src/doc/run_examples.sh`), its tables (`src/doc/compare_options.sh`,
+  `src/doc/make_tables.py`) and its figures (`src/doc/make_figures.py`).
+- `src/examples/dampedPendulum.mk`, a problem that is not in the paper.
+- The program is called `EndCorelib`, its companion programs `EndCoretraj`
+  and `EndCoreaudit`; the sources are in `src/`.

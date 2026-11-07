@@ -19,10 +19,10 @@
 # ===========================================================================
 set -u
 
-cd "$(dirname "$0")/.." || exit 1
-BIN=./EnCorelib
-[ -x "$BIN" ] || BIN=./EnCorelib.exe
-[ -x "$BIN" ] || BIN=./bin/EnCorelib.exe
+cd "$(dirname "$0")/../.." || exit 1
+BIN=${ENDCORELIB:-./EndCorelib}
+[ -x "$BIN" ] || BIN=./EndCorelib.exe
+[ -x "$BIN" ] || BIN=./bin/EndCorelib.exe
 if [ ! -x "$BIN" ]; then echo "build first (or use bin/):  make" >&2; exit 1; fi
 
 BASELINE=${BASELINE:-0}
@@ -38,7 +38,7 @@ function r2(v,   s) { s = sprintf("%.2f", v); return (s == "-0.00") ? "0.00" : s
   }
   printf "(%s) +- (%s)", mid, half }'
 
-# check <label> <expected B1> <expected #C> -- <EnCorelib arguments...>
+# check <label> <expected B1> <expected #C> -- <EndCorelib arguments...>
 check() {
   local label="$1" wantB1="$2" wantC="$3"; shift 4
   local out hull gotB1 gotC
@@ -61,13 +61,13 @@ check() {
 }
 
 echo "mode=EndCover, method=0 (tube), stepB=2 (lohnerHO+lognorm), order=20"
-check "Eg1 Volterra  H=4  eps=1.0"  "(1.48, 0.19) +- (0.36, 0.04)"   5  -- \
+check "Eg1 Volterra  H=4  eps=1.0"  "(1.48, 0.20) +- (0.43, 0.06)"   2  -- \
       2 0 0 2 0 2 x y 2*x-2*x*y -y+x*y 1.0 20 4 0  0.9 1.1 2.9 3.1
 check "Eg2 VanDerPol H=1  eps=1.0"  "(-2.14, 0.57) +- (0.27, 0.22)"   1  -- \
       2 0 0 2 0 2 x y y "-x+y-x^2*y" 1.0 20 1 0  -3.1 -2.9 2.9 3.1
-check "Eg3 Quadratic H=1  eps=0.1"  "(0.28, -0.58) +- (0.15, 0.15)"   21  -- \
+check "Eg3 Quadratic H=1  eps=0.1"  "(0.28, -0.58) +- (0.15, 0.15)"   16  -- \
       2 0 0 2 0 2 x y y "x^2" 0.1 20 1 0  0.95 1.05 -1.05 -0.95
-check "Eg4 FitzHugh  H=1  eps=0.1"  "(1.76, 0.17) +- (0.08, 0.10)"   20  -- \
+check "Eg4 FitzHugh  H=1  eps=0.1"  "(1.76, 0.17) +- (0.08, 0.10)"   8  -- \
       2 0 0 2 0 2 x y "0.5+x-y+(-1/3)*x^3" "0.056+0.08*x-0.064*y" 0.1 20 1 0  0.9 1.1 -0.1 0.1
 check "Eg5 Lorenz    H=1  eps=1.0"  "(-6.95, 3.00, 35.14) +- (0.03, 0.01, 0.04)"   1  -- \
       2 0 0 2 0 3 x y z "-10*x+10*y" "28*x-y-x*z" "(-8/3)*z+x*y" 1.0 20 1 0 \
@@ -78,13 +78,13 @@ check "Eg6 Roessler  H=1  eps=1.0"  "(-1.74, 1.86, 0.03) +- (0.15, 0.18, 0.00)" 
 
 echo
 echo "method=2 (Split only), stepB=0"
-check "Eg1 Volterra  H=4  eps=1.0" "(1.47, 0.19) +- (0.38, 0.05)"   5  -- \
+check "Eg1 Volterra  H=4  eps=1.0" "(1.35, 0.18) +- (0.50, 0.08)"   3  -- \
       2 0 2 0 0 2 x y 2*x-2*x*y -y+x*y 1.0 20 4 0  0.9 1.1 2.9 3.1
-check "Eg1 Volterra  H=4  eps=0.1" "(1.46, 0.19) +- (0.26, 0.03)"  85  -- \
+check "Eg1 Volterra  H=4  eps=0.1" "(1.46, 0.19) +- (0.26, 0.03)"  56  -- \
       2 0 2 0 0 2 x y 2*x-2*x*y -y+x*y 0.1 20 4 0  0.9 1.1 2.9 3.1
 check "Eg2 VanDerPol H=1  eps=1.0" "(-2.14, 0.57) +- (0.29, 0.29)"  1  -- \
       2 0 2 0 0 2 x y y "-x+y-x^2*y" 1.0 20 1 0  -3.1 -2.9 2.9 3.1
-check "Eg3 Quadratic H=1  eps=0.1" "(0.28, -0.58) +- (0.15, 0.15)" 21  -- \
+check "Eg3 Quadratic H=1  eps=0.1" "(0.28, -0.58) +- (0.15, 0.15)" 16  -- \
       2 0 2 0 0 2 x y y "x^2" 0.1 20 1 0  0.95 1.05 -1.05 -0.95
 check "Eg5 Lorenz    H=1  eps=1.0" \
       "(-6.95, 3.00, 35.14) +- (0.03, 0.01, 0.04)" 1 -- \
@@ -97,13 +97,13 @@ check "Eg6 Roessler  H=1  eps=1.0" \
 
 echo
 echo "the other refinement strategies, StepB variants and tube degrees"
-check "Eg2 H=1 eps=0.5  method=1"      "(-2.13, 0.58) +- (0.20, 0.09)"  5  -- \
+check "Eg2 H=1 eps=0.5  method=1"      "(-2.13, 0.58) +- (0.21, 0.09)"  2  -- \
       2 0 1 2 0 2 x y y "-x+y-x^2*y" 0.5 20 1 0  -3.1 -2.9 2.9 3.1
-check "Eg2 H=1 eps=0.5  stepB=0"       "(-2.13, 0.58) +- (0.21, 0.10)" 5 -- \
+check "Eg2 H=1 eps=0.5  stepB=0"       "(-2.13, 0.58) +- (0.21, 0.09)" 2 -- \
       2 0 0 0 0 2 x y y "-x+y-x^2*y" 0.5 20 1 0  -3.1 -2.9 2.9 3.1
-check "Eg2 H=1 eps=0.5  stepB=3"       "(-2.13, 0.58) +- (0.20, 0.09)" 5 -- \
+check "Eg2 H=1 eps=0.5  stepB=3"       "(-2.13, 0.58) +- (0.20, 0.09)" 2 -- \
       2 0 0 3 0 2 x y y "-x+y-x^2*y" 0.5 20 1 0  -3.1 -2.9 2.9 3.1
-check "Eg2 H=1 eps=0.5  tubedegree=1"  "(-2.13, 0.58) +- (0.20, 0.09)" 5 -- \
+check "Eg2 H=1 eps=0.5  tubedegree=1"  "(-2.13, 0.58) +- (0.20, 0.09)" 2 -- \
       2 0 0 2 1 2 x y y "-x+y-x^2*y" 0.5 20 1 0  -3.1 -2.9 2.9 3.1
 
 echo

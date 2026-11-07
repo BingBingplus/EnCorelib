@@ -1,20 +1,20 @@
 // ===========================================================================
-//  tools/audit_cover.cpp  --  Encoreaudit
+//  src/tools/audit_cover.cpp  --  EndCoreaudit
 //
-//  A box-by-box check of a cover computed by EnCorelib.
+//  A box-by-box check of a cover computed by EndCorelib.
 //
-//  EnCorelib (output_mode >= 3) writes the sub-boxes of B0 to E0.txt and
+//  EndCorelib (output_mode >= 3) writes the sub-boxes of B0 to E0.txt and
 //  their end-enclosures, the boxes of the cover C, to E1.txt; line k of one
 //  belongs to line k of the other.  For every k this tool takes the centre
 //  and the corners of E0[k], encloses the solution through each of them up
 //  to time H with a plain validated integrator, and checks that each such
 //  enclosure meets E1[k].  An enclosure disjoint from E1[k] proves that
-//  E1[k] is not an end-enclosure of E0[k].  repro/verify_cover.sh checks
+//  E1[k] is not an end-enclosure of E0[k].  src/repro/verify_cover.sh checks
 //  that every sample image lies in some box of C; this check is stronger,
 //  because it ties every box of C to its own sub-box.
 //
 //  Usage
-//      ./Encoreaudit n  var_1..var_n  f_1..f_n  order H  E0.txt E1.txt
+//      ./EndCoreaudit n  var_1..var_n  f_1..f_n  order H  E0.txt E1.txt
 //
 //  Prints one summary line; the exit status is 1 when some box fails.
 // ===========================================================================
@@ -103,7 +103,7 @@ int main(int argc, char* argv[]) {
         std::printf("\n");
         return bad ? 1 : 0;
     } catch (const std::exception& e) {
-        std::fprintf(stderr, "Encoreaudit: %s\n\nUsage: Encoreaudit n var_1..var_n f_1..f_n"
+        std::fprintf(stderr, "EndCoreaudit: %s\n\nUsage: EndCoreaudit n var_1..var_n f_1..f_n"
                              " order H E0.txt E1.txt\n", e.what());
         return 2;
     }

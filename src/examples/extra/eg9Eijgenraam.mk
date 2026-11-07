@@ -15,11 +15,11 @@
 # many small (eps-small) boxes, so it does not hit this obstruction.
 #
 # Run (from version_2026/):
-#   make run EG=src/examples/eg9Eijgenraam.mk           # EndCover mode (mode=0)
-#   make run EG=src/examples/eg9Eijgenraam.mk output_mode=3
+#   make run EG=src/examples/extra/eg9Eijgenraam.mk           # EndCover mode (mode=0)
+#   make run EG=src/examples/extra/eg9Eijgenraam.mk output_mode=3
 #
 # CLI format (for reference):
-#   ./EnCorelib output_mode mode method stepB tubedegree n vars... funs... eps order T debug lo1 hi1 ...
+#   ./EndCorelib output_mode mode method stepB tubedegree n vars... funs... eps order T debug lo1 hi1 ...
 # ══════════════════════════════════════════════════════════════════════════
 
 #── Problem ────────────────────────────────────────────────────────────────

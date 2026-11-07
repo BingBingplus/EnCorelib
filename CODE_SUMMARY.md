@@ -1,4 +1,4 @@
-# EnCorelib — structure of the code
+# EndCorelib — structure of the code
 
 > Paper: B. Zhang and C. Yap, *End Cover for Initial Value Problem: Complete
 > Validated Algorithm with Complexity Analysis* (arXiv:2502.00503 /
@@ -21,29 +21,34 @@ reachable set.
 ## 📁 Layout
 
 ```
-version_2026/
-├── types.h                # box utilities + the two core structs (Scaffold / MiniScaffold)
-├── progress.h             # the progress reports selected by `debug` (standard error)
-├── symparse.h             # right-hand-side string pre-processing (optional SymEngine)
+EndCorelib/
+├── src/
+│   ├── types.h            # box utilities + the two core structs (Scaffold / MiniScaffold)
+│   ├── progress.h         # the progress reports selected by `debug` (standard error)
+│   ├── symparse.h         # right-hand-side string pre-processing (optional SymEngine)
+│   │
+│   ├── stepAB.h           # ★ StepA / the four StepB variants / tube thresholds / SolutionChain
+│   │
+│   ├── extend.h           # S.Extend(H, ε₀) — append one stage to the scaffold
+│   ├── refine.h           # S.Refine(ε₀) — Evaluate / Bisect / EulerTube /
+│   │                      #   Split / StageFreeze / NeedSplit / CanTerminate
+│   │
+│   ├── endcover.h         # the EndCover loop (the queue of scaffolds)
+│   ├── boundary.h         # runScaffold (the Extend/Refine driver) + Boundary mode
+│   │
+│   ├── EndCorelib.cpp     # command line, output levels, output files
+│   │
+│   ├── examples/          # the six problems of Table 1 + the two cases of Figure 1 (.mk)
+│   ├── repro/             # scripts: table2 / figure1 / figure4 / check / verify / audit
+│   │   └── competitors/   # the CAPD reference integrator
+│   ├── tools/             # plot scripts (Python/MATLAB), EndCoretraj, EndCoreaudit, run.sh
+│   ├── doc/               # the scripts that regenerate the guide's examples, tables, figures
+│   └── extras/            # additional diagnostic programs
 │
-├── stepAB.h               # ★ StepA / the four StepB variants / tube thresholds / SolutionChain
-│
-├── extend.h               # S.Extend(H, ε₀) — append one stage to the scaffold
-├── refine.h               # S.Refine(ε₀) — Evaluate / Bisect / EulerTube /
-│                          #   Split / StageFreeze / NeedSplit / CanTerminate
-│
-├── endcover.h             # the EndCover loop (the subdivision queue over B0)
-├── boundary.h             # runScaffold (the Extend/Refine driver) + Boundary mode
-│
-├── EnCorelib.cpp          # command line, output levels, output files
-│
-├── examples/              # the six problems of Table 1 + the two cases of Figure 1 (.mk)
-├── repro/                 # scripts: table2 / figure1 / figure4 / check / verify
-│   └── competitors/       # reference integrator + VNODE-LP / INTLAB drivers
-├── tools/                 # plot scripts (Python/MATLAB), Encoretraj, run.sh
-├── doc/                   # the user guide (userguide.tex/.pdf) and the scripts
-│                          #   that regenerate its examples, tables and figures
-└── extras/                # additional diagnostic programs
+├── bin/                   # prebuilt Windows executables and the DLLs they need
+├── doc/                   # the user guide (userguide.tex/.pdf), its figures and program output
+├── repro/                 # Table 2 as printed, notes on the competitors; out/ for results
+└── extras/                # data and figures of the diagnostic programs
 ```
 
 **Dependency order** (each layer uses only the ones above it):
@@ -52,7 +57,7 @@ version_2026/
 types.h  →  progress.h
 types.h  →  stepAB.h  →  extend.h  →  refine.h
                                         ↓
-                         endcover.h ←  boundary.h  →  EnCorelib.cpp
+                         endcover.h ←  boundary.h  →  EndCorelib.cpp
 ```
 
 `progress.h` is used by `extend.h`, `refine.h`, `endcover.h` and `boundary.h`.
@@ -77,6 +82,7 @@ types.h  →  stepAB.h  →  extend.h  →  refine.h
 | `wmax(B)` | `wmax(B)` | largest edge width `max_i w(B)_i` | IVector | double |
 | `wmin(B)` | `wmin(B)` | smallest edge width | IVector | double |
 | `midpoint(B)` | `m(B)` | midpoint, as a plain vector of doubles | IVector | vector\<double\> |
+| `halveLongestSide(B, lower, upper)` | — | the two halves of B along a longest side whose midpoint is a double strictly inside it; false when there is none | IVector | bool, two IVector |
 | `euclideanRadius(B)` | `½·wmax(Ball(B))` | radius of the smallest **Euclidean ball** containing B, `‖w(B)‖₂ / 2` | IVector | double |
 
 **Empty intersections in `IntersectB`.**  Both arguments enclose the same
@@ -144,6 +150,9 @@ struct Scaffold {
 **Stage i is the admissible quad** `(E_{i-1}, Δt_i, F_i, E_i)` with
 `Δt_i = t_i - t_{i-1}`, and every `E_i` contains `End(E₀, t_i)`.
 
+`Init(B, G0)` is `Init(B)` of Subsection 3.3: the 0-stage scaffold with
+`S.E[0] = B`, whose mini-scaffold starts from `G0`.
+
 ### Struct 3: `CoverResult`
 
 ```cpp
@@ -170,7 +179,7 @@ time since start-up, so standard output still holds only the results.
 
 | `debug` | reported by | what |
 |------|------|------|
-| 1 | `EndCover`, `TwoDimEncAlgo`, `ThreeDimEncAlgo` | one line per sub-box of `B0` (or edge segment, or face) |
+| 1 | `EndCover`, `BoundaryCover` | one line per scaffold taken from the queue (and one per face in Boundary mode) |
 | 2 | `ExtendToHorizon`, `Refine` | one line per scaffold laid out, one per pass of Refine |
 | 3 | `Extend`, `EulerTube` | one line per stage; containment checks; tube restarts |
 
@@ -435,7 +444,7 @@ inline void Evaluate(Scaffold& S, IMap f, SolutionChain& chain, int degree,
                      int stepBtype, int dim, double stepAdelta);
 ```
 
-Refine changes two things about a scaffold: `Split` shrinks `E₀`, and `Bisect`
+Refine changes two things about a scaffold: `Split` halves `E₀`, and `Bisect`
 asks for stage i to be crossed in `2^{ℓ_i}` mini-steps instead of one.
 `Evaluate` is what makes either of them take effect.
 
@@ -511,14 +520,31 @@ Euclidean norm, so every ball radius is that of the circumscribed ball.
 ### `Split()` (Subsection 5.3)
 
 ```cpp
-inline void Split(Scaffold& S, int dim, const std::vector<double>& target);
+inline bool Split(Scaffold& S, std::vector<Scaffold>& Qout);
 ```
 
-Halves `S.E[0]` towards `target` (towards the midpoint when no target is
-given).  **The complement is not stored here**: the caller — EndCover, or the
-boundary sweep — sees that `S.E[0]` has shrunk and re-queues the remaining
-sub-boxes.  Those are the "split-off scaffolds returned by Refine" of the
-pseudo-code.
+Splits `S.E[0]` into two sub-boxes `E0+` and `E0-` by halving it along a
+longest side.  `E0+` replaces the initial end-enclosure, `S.E[0] ← E0+`.
+`E0-` goes to a new scaffold `S'`, a clone of `S` except that
+`S'.E[0] ← E0-`, which is pushed into `Qout`; Refine returns `Qout` and
+goes on with `S`.  Returns false, leaving `S` as it is, when no side of
+`S.E[0]` can be halved in double precision (`halveLongestSide`).
+
+### `Reevaluate` — the scaffold after its `E₀` has changed
+
+```cpp
+inline bool Reevaluate(Scaffold& S, IMap f, SolutionChain& chain, double eps0,
+                       int degree, int stepBtype, int tubedegree, int dim,
+                       int debuglevel);   // true = a new grid was laid out
+```
+
+| case | what happens | why |
+|------|------|------|
+| some stage has been bisected (`ℓ_i > 0`) | `Evaluate()`, **keeping the time grid** | the grid carries Bisect's work |
+| nothing has been refined | `RebuildScaffold()`, **a new grid** | nothing to keep, and a smaller box admits longer steps |
+
+Refine calls it on `S` after every `Split`; `runScaffold` calls it on a
+split-off clone before refining it.
 
 ### The three stopping criteria (Subsection 5.3)
 
@@ -533,14 +559,14 @@ pseudo-code.
 ### `Refine`
 
 ```cpp
-inline void Refine(Scaffold& S, int dim, IMap f, SolutionChain& chain,
-                   int method, int stepBtype, int degree,
-                   double eps0, int tubedegree, int debuglevel,
-                   const std::vector<double>& target = {});
+inline std::vector<Scaffold> Refine(Scaffold& S, int dim, IMap f, SolutionChain& chain,
+                                    int method, int stepBtype, int degree,
+                                    double eps0, int tubedegree, int debuglevel);
+                                    // returns Qout, the split-off scaffolds
 ```
 
 **Early return.**  If `wmax(S.E.back()) ≤ ε₀` already holds, Refine returns at
-once, without a single `Evaluate`.
+once, without a single `Evaluate`, and `Qout` is empty.
 
 **Handing the chain back.**  When Refine returns, `chain` is anchored at the
 current `E₀` and standing at `S.T`, so the next `Extend` can carry straight on.
@@ -557,8 +583,9 @@ While (S is not ε₀-small)
          — freeze the stage when ELL_MAX is out of reach
        Bisected → Evaluate()   ← refining takes effect only on a new walk
        tubes()
-    ── Part B: If (NeedSplit()) { Split(); reevaluate() }   (unconditional for method 2)
-    ── Part C: If (CanTerminate() and still too wide) { Split(); reevaluate() }
+    ── Part B: If (NeedSplit()) { Qout.push(S.Split()); Reevaluate() }   (unconditional for method 2)
+    ── Part C: If (CanTerminate() and still too wide) { Qout.push(S.Split()); Reevaluate() }
+Return Qout
 ```
 
 **Why `Evaluate()` comes before Part B.**  Part A only changes `ℓ_i`; nothing
@@ -566,16 +593,9 @@ moves until the scaffold is walked again.  And `NeedSplit()` in Part B reads
 `μ_max`, which has to be the refined value — otherwise Bisect would have no
 influence on the decision to split.
 
-**`reevaluate()` — re-evaluating after a Split:**
-
-| case | what happens | why |
-|------|------|------|
-| some stage has been bisected (`ℓ_i > 0`) | `Evaluate()`, **keeping the time grid** | the grid carries Bisect's work |
-| nothing has been refined | `RebuildScaffold()`, **a new grid** | nothing to keep, and a smaller box admits longer steps |
-
 **Progress guard.**  A pass that has neither split nor narrowed the scaffold
-forces a `Split` and re-evaluates; when `E₀` has degenerated to a point the
-loop breaks.
+forces a `Split`.  When `E₀` cannot be halved in double precision the loop
+ends.
 
 ---
 
@@ -585,7 +605,7 @@ loop breaks.
 
 ## 📄 **endcover.h** — `EndCover_f(B0, H, ε₀) → C` (Subsection 3.3)
 
-**What it does.**  The global algorithm: a work queue that subdivides `B0`.
+**What it does.**  The global algorithm: a work queue of scaffolds.
 
 ```
 C  ← {}                            the ε₀-cover
@@ -600,62 +620,44 @@ While (Q0 ≠ {})
 Return C
 ```
 
-### Types and enum
+### Types
 
 ```cpp
-enum CoverSet { COVER_ALL = 0, COVER_LEAVES = 1 };
+struct PrecisionLimit : std::runtime_error;   // see Exceptions below
 
 struct EndCoverResult {
     std::vector<IVector> cover;      // C
-    std::vector<IVector> initBoxes;  // the sub-boxes of B0 that were integrated
+    std::vector<IVector> initBoxes;  // S.E[0] of the scaffold behind each box of C
 };
 
-using EndEncFn = std::function<std::pair<IVector, IVector>(
-                     const IVector&, double, const std::vector<double>&, double)>;
+using ScaffoldRun = std::function<std::vector<Scaffold>(Scaffold&)>;
 ```
-
-| `CoverSet` | meaning |
-|-----------|------|
-| `COVER_ALL` (default) | every box that is processed puts its end-enclosure into C |
-| `COVER_LEAVES` | only boxes that needed no further splitting — the ε₀-cover in the strict sense of eq. (1.3), every box satisfying `wmax ≤ ε₀` |
 
 ### Functions
 
 | function | description | in | out |
 |------|------|------|------|
-| `midpoint_vec(box)` | midpoint, as a vector of doubles | IVector | vector\<double\> |
-| `boxesEqual(a, b, tol=0)` | endpoint-by-endpoint comparison | two IVector | bool |
-| `splitAllDims(box)` | bisects along **every coordinate of positive width** | IVector | `vector<IVector>` (2^d of them, d = number of such coordinates) |
 | `shareOf(B, B0)` | the share of `B0` that `B` makes up (for the progress report) | two IVector | double |
-| `EndCover(B0, eps0, H, endEnc, maxSplits=2e6, coverSet=COVER_ALL, debuglevel=0)` | the main loop | — | EndCoverResult |
+| `EndCover(B0, G0, run, maxSplits=2e6, debuglevel=0)` | the main loop | — | EndCoverResult |
 
-**★ `splitAllDims` skips degenerate coordinates.**  Splitting a coordinate of
-zero width would only produce duplicate children.  When every coordinate is
-degenerate (the box is a point) an empty vector is returned.
+### The `run` protocol
 
-### The `endEnc` protocol
+`run(S)` is `runScaffold` (boundary.h): it brings the popped scaffold to the
+horizon, refines it, and returns the scaffolds that `Split` split off.
+EndCover pushes them into `Q0` and `S.E.back()` into `C`; `S.E[0]` goes into
+`initBoxes`.  The initial boxes of the scaffolds whose end-enclosures form `C`
+partition `B0`.
 
-The callback returns `(ulB, olB)`:
+**Exceptions.**  When `run` throws, the scaffold could not be carried to the
+horizon.  Its initial box `B` is split in two by `halveLongestSide`, and both
+halves go back into `Q0` as new scaffolds `Init(B±)`.  When `B` cannot be
+halved in double precision, `endcover::PrecisionLimit` is thrown and `main`
+suggests a smaller `T`.
 
-| value | meaning |
-|--------|------|
-| `ulB` | `S.E[0]` after `Refine` — the part that was actually integrated |
-| `olB` | `S.E.back()` — the end-enclosure at time H |
-
-**The decision rule.**  `ulB == B` means all of B is covered (resolved);
-`ulB ⊊ B` means `Refine` called `Split`, so the complement of B is still
-uncovered → `splitAllDims(B)` and re-queue.  Those children are the
-"split-off scaffolds returned by Refine" of the pseudo-code.
-
-**Exceptions.**  When `endEnc` throws, B is **not** dropped: it is subdivided
-and re-queued.  Only a box that is already a point, and so cannot be
-subdivided, propagates the failure upwards, as `endcover::PointFailure`:
-subdividing cannot help then, and `main` suggests a smaller `T`.
-
-**Progress.**  Every queued box carries its depth in the subdivision of `B0`.
-With `debuglevel ≥ 1` each processed box is reported on one line (depth,
-`wmax(B)`, resolved / split / failed, `wmax(E_m)`, queue length, share of `B0`
-resolved), and a summary line closes the run.
+**Progress.**  Every queued scaffold carries its depth, the number of splits
+between `B0` and its initial box.  With `debuglevel ≥ 1` each processed
+scaffold is reported on one line (depth, `wmax(B)`, `wmax(E_m)`, queue
+length, share of `B0` covered, outcome), and a summary line closes the run.
 
 ---
 
@@ -664,41 +666,44 @@ resolved), and a summary line closes the run.
 ### `runScaffold` — the engine shared by both modes
 
 ```cpp
-inline Scaffold runScaffold(const IVector& B, IMap F,
-                            const MiniScaffold& templateG,
-                            double eps0, double delta, int degree, double H,
-                            int method, int stepBtype, int tubedegree,
-                            int debuglevel, int dim,
-                            const std::vector<double>& target);
+inline std::vector<Scaffold> runScaffold(Scaffold& S, IMap F,
+                                         double eps0, double delta, int degree, double H,
+                                         int method, int stepBtype, int tubedegree,
+                                         int debuglevel, int dim);
 ```
 
 **The inner loop of EndCover:**
 
 ```
 While (S.T < H)  S.Extend(H, ε₀)
-S.Refine(ε₀)
+Q0.push(S.Refine(ε₀))
 ```
 
-`Refine` reads the whole scaffold and refines **all** of its stages, so it is
-called once the scaffold has reached the horizon.
+A new scaffold `Init(B)` is extended to H.  A scaffold split off by `Split`
+already reaches H; it is a clone of the scaffold it came from and is first
+evaluated from its own `E₀` (`Reevaluate`).  `Refine` reads the whole scaffold
+and refines **all** of its stages, so it is called once the scaffold has
+reached the horizon.  The scaffolds it splits off are returned.
 
 **The carried doubleton.**  `runScaffold` owns one `SolutionChain`; `Extend`
 advances it one step per stage, and after `Split` / `Bisect` `Refine` walks it
 again from `E₀`.  From `E₀` to `E_m` there is only this one doubleton, and it is
 never re-enclosed on the way.
 
-**Finiteness check.**  After each stage the endpoints of `S.E.back()` are
-checked for finiteness; if they are not finite an exception sends the box back
-to EndCover for subdivision.
+**Finiteness check.**  Once the scaffold reaches H the endpoints of
+`S.E.back()` are checked for finiteness; if they are not finite an exception
+sends the box back to EndCover, which splits it.
 
 ### Boundary mode (`mode = 1`)
 
-Covers only the **boundary** of `B0`: the four edges in 2D, the 2n faces in nD.
+```cpp
+inline void BoundaryCover(CoverResult& Sdata, const IVector& B0,
+                          const MiniScaffold& G0, const endcover::ScaffoldRun& run,
+                          int debuglevel, bool verbose = true);
+```
 
-| function | dimension | how |
-|------|------|------|
-| `TwoDimEncAlgo(...)` | n = 2 | sweeps edge by edge, bisecting a segment where needed, down to a single point |
-| `ThreeDimEncAlgo(...)` | n ≥ 3 | one `endcover::EndCover` run per face, 2n of them |
+Covers only the **boundary** of `B0`: one `endcover::EndCover` run on each of
+its 2n faces (the four edges in 2D), in the order `x₁ = lo, x₁ = hi, x₂ = lo, …`.
 
 For a flow the image of the boundary bounds the image of the interior, so when
 `End(B0,H)` is simply connected the hull of the boundary cover is an enclosure
@@ -719,12 +724,12 @@ of `End(B0,H)`.
 
 ---
 
-## 📄 **EnCorelib.cpp** — command line and output
+## 📄 **EndCorelib.cpp** — command line and output
 
 ### Command line
 
 ```
-./EnCorelib  output_mode mode method stepB tubedegree n
+./EndCorelib  output_mode mode method stepB tubedegree n
            var_1 ... var_n  f_1 ... f_n
            eps order T debug
            lo_1 hi_1 ... lo_n hi_n
@@ -744,7 +749,9 @@ of `End(B0,H)`.
 
 **Exit status.**  0 success; 2 bad arguments or an unreadable right-hand
 side (reported as `Cannot read the right-hand side ...`); 3 the computation
-failed (`[EndCover failed]` / `[Boundary failed]`, with the time reached).
+stopped (`[EndCover stopped]` / `[Boundary stopped]`, with the time reached),
+either because double precision is exhausted or because `maxSplits` was
+reached.
 
 ### Internal functions
 
@@ -754,11 +761,11 @@ failed (`[EndCover failed]` / `[Boundary failed]`, with the time reached).
 | `saveBoxes(boxes, fname, verbose)` | writes a box file (scientific, 17 digits) | — | — |
 | `midRadString(B)` | `"(mid,...) +- (half,...)"`, the B1 column of Table 2 | IVector | string |
 | `appendLog(...)` | appends one tab-separated row to `out.txt` | — | — |
-| `Init(B, delta, H)` | `Init(B0)` — a scaffold with no stages (Subsection 3.3) | — | Scaffold |
+| `initialMiniScaffold(delta, H)` | the mini-scaffold every `Init(B)` starts from (Subsection 3.3) | — | MiniScaffold |
 | `usage()` | prints the usage message | — | — |
 
-**Sentinels set by `Init`:** `G.mu = {1000.0}`, `G.hTube = H`, `ℓ = 0`,
-`nTube = 1`.
+**Sentinels set by `initialMiniScaffold`:** `G.mu = {1000.0}`, `G.hTube = H`,
+`ℓ = 0`, `nTube = 1`.
 
 **`std::cout << std::unitbuf`** on the first line of main, so that output
 already produced is not left sitting in the buffer.
@@ -787,7 +794,10 @@ already produced is not left sitting in the buffer.
 
 ---
 
-## 📁 **repro/** — the tables and figures of the paper
+## 📁 **src/repro/** — the tables and figures of the paper
+
+The scripts run from the top directory and write into `repro/out/`;
+`repro/table2_paper.txt` and `repro/competitors/README.md` sit next to it.
 
 | script | description |
 |------|------|
@@ -796,17 +806,17 @@ already produced is not left sitting in the buffer.
 | `figure1.sh` | the data behind Figure 1: the Eijgenraam ε-cover and the pendulum orbit |
 | `figure4.sh` | the data behind Figure 4: E0/E1 for the six examples |
 | `check.sh` | the self-test, 18 assertions (`make check`); `BASELINE=1` re-takes the baseline |
-| `verify_cover.sh` | integrates a grid of sample points of B0 separately with `Encoretraj` and confirms that every image lies inside some box of C; runs all three `method` values |
-| `audit_cover.sh` | box-by-box check (`make audit`): every box of C must meet the images of the centre and corners of its own sub-box of B0 (`Encoreaudit`) |
-| `competitors/` | the reference integrator (`make capdref`) and the VNODE-LP / INTLAB driver templates |
+| `verify_cover.sh` | integrates a grid of sample points of B0 separately with `EndCoretraj` and confirms that every image lies inside some box of C; runs all three `method` values |
+| `audit_cover.sh` | box-by-box check (`make audit`): every box of C must meet the images of the centre and corners of its own sub-box of B0 (`EndCoreaudit`) |
+| `competitors/capd_compare.cpp` | the reference integrator (`make capdref`); `repro/competitors/README.md` records how the other solvers were driven |
 
-## 📁 **tools/**
+## 📁 **src/tools/**
 
 | file | description |
 |------|------|
-| `trajectory.cpp` → `Encoretraj` | validated trajectory printer (Figure 1, top row; also the independent reference for `verify_cover.sh`) |
-| `audit_cover.cpp` → `Encoreaudit` | reads E0.txt/E1.txt and checks each box of the cover against the images of its own sub-box (`repro/audit_cover.sh`) |
-| `run.sh` | invokes EnCorelib from the Makefile; splits `var`/`ff` on commas here, so the shell never sees the parentheses in `x*(28-z)-y` |
+| `trajectory.cpp` → `EndCoretraj` | validated trajectory printer (Figure 1, top row; also the independent reference for `verify_cover.sh`) |
+| `audit_cover.cpp` → `EndCoreaudit` | reads E0.txt/E1.txt and checks each box of the cover against the images of its own sub-box (`src/repro/audit_cover.sh`) |
+| `run.sh` | invokes EndCorelib from the Makefile; splits `var`/`ff` on commas here, so the shell never sees the parentheses in `x*(28-z)-y` |
 | `boxio.py` | box-file reader |
 | `plot_boxes.py` | Figure 4 style plots (two panels in 2D, three projections in 3D) |
 | `plot_eijgenraam.py` | Figure 1, bottom row |
@@ -817,14 +827,14 @@ already produced is not left sitting in the buffer.
 ## 📊 Data flow
 
 ```
-command line / examples/*.mk
+command line / src/examples/*.mk
     ↓
 IMap F  ←  symparse.h (optional SymEngine expansion)
     ↓
 ┌──────────────────────────────────────────────────────┐
 │ mode = 0: EndCover (endcover.h)                      │
-│   work queue Q0 of sub-boxes of B0                   │
-│   for each B:                                        │
+│   work queue Q0 of scaffolds, Init(B0) first         │
+│   for each S:                                        │
 │     ┌────────────────────────────────────────────┐   │
 │     │ runScaffold (boundary.h)                    │   │
 │     │   carries one doubleton (stepAB.h)          │   │
@@ -839,8 +849,8 @@ IMap F  ←  symparse.h (optional SymEngine expansion)
 │     │       ├ Part B: NeedSplit → Split           │   │
 │     │       └ Part C: CanTerminate → wrap up      │   │
 │     └────────────────────────────────────────────┘   │
-│   returns (ulB, olB)                                 │
-│   ulB ⊊ B ?  → splitAllDims(B) and re-queue          │
+│   returns the split-off scaffolds → Q0               │
+│   C.push(S.E.back())                                 │
 └──────────────────────────────────────────────────────┘
     ↓
 CoverResult { E0, C, hull }
@@ -855,12 +865,13 @@ output: time / Hull(T) / B1 / #(C) / E0.txt / E1.txt / ...
 ### One EndCover run
 
 ```
-main (EnCorelib.cpp)
-  └─ endcover::EndCover(B0, ε, H, endEnc)
-       └─ endEnc(B, ε, m(B), H)                       ← lambda in main
-            └─ runScaffold(B, ...)                     (boundary.h)
+main (EndCorelib.cpp)
+  └─ endcover::EndCover(B0, G0, run)
+       └─ run(S)                                      ← lambda in main
+            └─ runScaffold(S, ...)                     (boundary.h)
                  ├─ SolutionChain (carried, anchored at E₀)   (stepAB.h)
-                 ├─ ExtendToHorizon(...)               (extend.h)
+                 ├─ ExtendToHorizon(...)  or, for a split-off clone,
+                 │  Reevaluate(...)                    (extend.h / refine.h)
                  │    └─ Extend(...)  once per stage
                  │         ├─ StepA(f, E₀, H-t, ε)      (stepAB.h) ← step bound
                  │         ├─ chain.step(h)             (stepAB.h) ← one StepB step
@@ -874,7 +885,7 @@ main (EnCorelib.cpp)
                       ├─ EulerTube(i)             (Theorem 5.1, method 0)
                       ├─ Bisect(i, levels)        (ℓ_i += levels, method 0/1)
                       ├─ NeedSplit / StageFreeze / CanTerminate
-                      └─ Split(S, dim, target)
+                      └─ Split(S, Qout), then Reevaluate(...)
 ```
 
 ### Where each enclosure comes from
@@ -905,9 +916,8 @@ F^i[j]                  ← StepAatStep (per mini-step), then tightened by Thm 5
    notation; there are no compatibility aliases.
 6. **`-frounding-math` is required**; the directed roundings every interval
    bound depends on rely on it, and both build systems pass it.
-7. **How `#(C)` is counted.**  `COVER_ALL` by default, i.e. every box that was
-   **processed** counts, including those later cut by `Split`; `COVER_LEAVES`
-   keeps only the boxes that needed no further splitting.  `output_mode ≥ 2`
+7. **How `#(C)` is counted.**  One box per scaffold that reached the
+   horizon ε₀-small; their initial boxes partition `B0`.  `output_mode ≥ 2`
    also prints `max_{B in C} wmax(B)`.
 
 ---
@@ -920,7 +930,7 @@ F^i[j]                  ← StepAatStep (per mini-step), then tightened by Thm 5
 3. `stepAB.h::SolutionChain` — how a chain of mini-quads is evaluated (Subsection 5.1)
 4. `extend.h` — how a stage comes into being
 5. `refine.h` — the main algorithm (all of Section 5)
-6. `endcover.h` + `boundary.h` — the subdivision and the driver
+6. `endcover.h` + `boundary.h` — the queue of scaffolds and the driver
 
 **To just build and run:**
 `README.md` §2 to build → `make check` → `make table2` → compare with
@@ -930,7 +940,7 @@ F^i[j]                  ← StepAatStep (per mini-step), then tightened by Thm 5
 1. `types.h::euclideanRadius` (the norm of Lemma 2.1)
 2. `stepAB.h::StepAatStep` (the admissibility test of eq. 2.2)
 3. `refine.h::EulerTube` (Theorem 5.1 and condition 2.7)
-4. `repro/verify_cover.sh` (the sample-point check)
+4. `src/repro/verify_cover.sh` (the sample-point check)
 
 ---
 
@@ -946,7 +956,8 @@ F^i[j]                  ← StepAatStep (per mini-step), then tightened by Thm 5
 | `G[i] = ((ℓ_i, E^i, F^i), μ^i, (δ_i, h^i_euler))` | `struct MiniScaffold { ell, E, F, mu, delta, hTube, nTube }` |
 | `StepA(E₀,H,δ)`, `StepB(E₀,h,F₁)` | `StepA(...)`, `StepB(...)` |
 | `S.Extend(H,ε₀)`, `S.Refine(ε₀)` | `Extend(...)`, `Refine(...)` |
-| `S.Bisect(i)`, `S.EulerTube(i)`, `S.Split()` | `Bisect`, `EulerTube`, `Split` |
+| `Init(B)` | `Init(B, G0)` |
+| `S.Bisect(i)`, `S.EulerTube(i)`, `S.Split()` | `Bisect`, `EulerTube`, `Split(S, Qout)` |
 | `StageFreeze(i)` — eq. (5.4) | `StageFreeze(S, i, eps0)` |
 | `NeedSplit()` — eq. (5.5) | `NeedSplit(S, eps0, n)` |
 | `CanTerminate()` — eq. (5.6) | `CanTerminate(freezeFlag, needSplit)` |
@@ -972,7 +983,7 @@ operators Refine uses** to refine the scaffold once those steps exist.
 |--------|------|------|
 | 0 | `tube` | Bisect + EulerTube + Split + (5.4)–(5.6); the Refine written out in Section 5, **the default** |
 | 1 | `bisect` | the same with EulerTube switched off |
-| 2 | `splitonly` | Split alone: the stages stay the steps Lohner's method took and are not subdivided, so the accuracy comes from shrinking E₀ |
+| 2 | `splitonly` | Split alone: the stages stay the steps Lohner's method took and are not subdivided, so the accuracy comes from splitting E₀ |
 
 ### The four StepB representations
 
@@ -1006,7 +1017,7 @@ Everything runs in IEEE double precision.
 
 ---
 
-**Covers:** every header of EnCorelib, the driver, and the `repro/` and
-`tools/` directories.
+**Covers:** every header of EndCorelib, the driver, and the `src/repro/` and
+`src/tools/` directories.
 **Size:** 7 headers, the driver, and the scripts and tools.
 **Self-test:** `make check` and `make verify` both pass.

@@ -1,7 +1,7 @@
-$ ./EnCorelib
+$ ./EndCorelib
 Argument error: too few arguments
 
-Usage: EnCorelib output_mode mode method stepB tubedegree n \
+Usage: EndCorelib output_mode mode method stepB tubedegree n \
                var1 ... varn  f1 ... fn \
                eps order T debug  lo1 hi1 ... lon hin
 

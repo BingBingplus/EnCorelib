@@ -9,7 +9,7 @@ Left panel   a non-validated RK45 integration, the same family of method as
              which is qualitatively wrong -- the exact orbit through (0,2)
              is below the separatrix (energy 1 - cos x + y^2/2 = 2 < 4) and
              must stay bounded in x.
-Right panel  the validated enclosures produced by ./Encoretraj (see
+Right panel  the validated enclosures produced by ./EndCoretraj (see
              src/repro/figure1.sh), which stay on the correct orbit.
 
 The left panel needs scipy; if MATLAB is available run src/tools/pendulum_ode45.m
@@ -86,7 +86,7 @@ def main():
         _, xs, ys = read_traj(path)
         axes[1].plot(xs, ys, lw=1.0, color=colors.get(y0, "k"), label="y(0)=%g" % y0)
         found = True
-    axes[1].set_title("validated enclosures from ./Encoretraj")
+    axes[1].set_title("validated enclosures from ./EndCoretraj")
     if not found:
         axes[1].text(0.5, 0.5, "run src/repro/figure1.sh first",
                      ha="center", transform=axes[1].transAxes)

@@ -1,9 +1,9 @@
 ##############################################################################
-#  Makefile  --  EndCover for IVP  (EnCorelib)
+#  Makefile  --  EndCover for IVP  (EndCorelib)
 #
 #  Quick start
 #  -----------
-#      make                       compile ./EnCorelib
+#      make                       compile ./EndCorelib
 #      make run-eg1Volterra       run Eg1 of Table 1
 #      make table2                Table 2 of the paper
 #      make figure1  figure4      the data behind Figures 1 and 4
@@ -32,8 +32,8 @@
 CXX      ?= g++
 CXXFLAGS ?= -std=c++17 -O2 -Wall -Wno-sign-compare -Wno-overloaded-virtual
 
-TARGET  := EnCorelib
-HEADERS := src/types.h src/progress.h src/symparse.h src/stepAB.h src/extend.h src/refine.h src/endcover.h src/boundary.h
+TARGET  := EndCorelib
+HEADERS := $(addprefix src/,types.h progress.h symparse.h stepAB.h extend.h refine.h endcover.h boundary.h)
 
 # ────────────────────────────────────────────────────────────────────────────
 #  1. Locate CAPD
@@ -116,38 +116,38 @@ endif
 # ────────────────────────────────────────────────────────────────────────────
 all: $(TARGET)
 
-$(TARGET): src/EnCorelib.cpp $(HEADERS)
+$(TARGET): src/EndCorelib.cpp $(HEADERS)
 	$(CXX) $(CXXFLAGS) $(CAPD_CFLAGS) $(SYMENGINE_CFLAGS) \
-	    src/EnCorelib.cpp -o $(TARGET) \
+	    src/EndCorelib.cpp -o $(TARGET) \
 	    $(CAPD_LIBS) $(SYMENGINE_LIBS)
 	@echo "Built $(TARGET)"
 
-# Encoretraj: validated trajectory printer used for Figure 1 (top row).
-Encoretraj: src/tools/trajectory.cpp $(HEADERS)
+# EndCoretraj: validated trajectory printer used for Figure 1 (top row).
+EndCoretraj: src/tools/trajectory.cpp $(HEADERS)
 	$(CXX) $(CXXFLAGS) $(CAPD_CFLAGS) $(SYMENGINE_CFLAGS) \
-	    src/tools/trajectory.cpp -o Encoretraj \
+	    src/tools/trajectory.cpp -o EndCoretraj \
 	    $(CAPD_LIBS) $(SYMENGINE_LIBS)
-	@echo "Built Encoretraj"
+	@echo "Built EndCoretraj"
 
-# capdref: the reference integrator behind src/repro/competitors/.
+# capdref: the reference integrator behind repro/competitors/.
 capdref: src/repro/competitors/capd_compare.cpp $(HEADERS)
 	$(CXX) $(CXXFLAGS) $(CAPD_CFLAGS) \
 	    src/repro/competitors/capd_compare.cpp -o capdref \
 	    $(CAPD_LIBS)
 	@echo "Built capdref"
 
-# Encoreaudit: box-by-box check of a cover (src/repro/audit_cover.sh).
-Encoreaudit: src/tools/audit_cover.cpp $(HEADERS)
+# EndCoreaudit: box-by-box check of a cover (src/repro/audit_cover.sh).
+EndCoreaudit: src/tools/audit_cover.cpp $(HEADERS)
 	$(CXX) $(CXXFLAGS) $(CAPD_CFLAGS) $(SYMENGINE_CFLAGS) \
-	    src/tools/audit_cover.cpp -o Encoreaudit \
+	    src/tools/audit_cover.cpp -o EndCoreaudit \
 	    $(CAPD_LIBS) $(SYMENGINE_LIBS)
-	@echo "Built Encoreaudit"
+	@echo "Built EndCoreaudit"
 
-tools: Encoretraj capdref Encoreaudit
+tools: EndCoretraj capdref EndCoreaudit
 
 clean:
-	rm -f $(TARGET) $(TARGET).exe Encoretraj Encoretraj.exe capdref capdref.exe
-	rm -f Encoreaudit Encoreaudit.exe
+	rm -f $(TARGET) $(TARGET).exe EndCoretraj EndCoretraj.exe capdref capdref.exe
+	rm -f EndCoreaudit EndCoreaudit.exe
 	rm -f E0.txt E1.txt E_0.txt E_1.txt convex_hull.txt convex_hull_E0.txt out.txt
 
 distclean: clean
@@ -226,7 +226,7 @@ table2-%: $(TARGET)
 compare:
 	@$(if $(PYTHON),$(PYTHON),python3) src/repro/compare.py
 
-figure1: $(TARGET) Encoretraj
+figure1: $(TARGET) EndCoretraj
 	@bash src/repro/figure1.sh
 
 figure4: $(TARGET)
@@ -235,14 +235,14 @@ figure4: $(TARGET)
 check: $(TARGET)
 	@bash src/repro/check.sh
 
-# Integrate a grid of sample points of B0 with ./Encoretraj and confirm each
+# Integrate a grid of sample points of B0 with ./EndCoretraj and confirm each
 # image lies inside some box of the cover.
-verify: $(TARGET) Encoretraj
+verify: $(TARGET) EndCoretraj
 	@bash src/repro/verify_cover.sh
 
 # Box by box: every box of the cover must meet the images of the centre and
 # the corners of its own sub-box of B0.
-audit: $(TARGET) Encoreaudit
+audit: $(TARGET) EndCoreaudit
 	@bash src/repro/audit_cover.sh
 
 .PHONY: table2 table2-% compare figure1 figure4 check verify audit
@@ -258,16 +258,16 @@ cmake-build:
 .PHONY: cmake-build
 
 # ────────────────────────────────────────────────────────────────────────────
-#  7. src/extras/
+#  7. extras/
 # ────────────────────────────────────────────────────────────────────────────
-src/extras/moore_direct_test: src/extras/moore_direct_test.cpp $(HEADERS)
+extras/moore_direct_test: src/extras/moore_direct_test.cpp $(HEADERS)
 	$(CXX) $(CXXFLAGS) $(CAPD_CFLAGS) src/extras/moore_direct_test.cpp \
 	    -o $@ $(CAPD_LIBS)
 
-src/extras/moore_endcover_direct: src/extras/moore_endcover_direct.cpp $(HEADERS)
+extras/moore_endcover_direct: src/extras/moore_endcover_direct.cpp $(HEADERS)
 	$(CXX) $(CXXFLAGS) $(CAPD_CFLAGS) src/extras/moore_endcover_direct.cpp \
 	    -o $@ $(CAPD_LIBS)
 
-extras-all: src/extras/moore_direct_test src/extras/moore_endcover_direct
+extras-all: extras/moore_direct_test extras/moore_endcover_direct
 
 .PHONY: extras-all
