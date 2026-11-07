@@ -9,7 +9,8 @@
 # ==========================================================================
 n   = 3
 var = x,y,z
-ff  = -y-z,x+0.2*y,0.2+z*(x-5.7)
+# f multiplied out, the form the paper's numbers come from (see _template.txt)
+ff  = -y-z,x+0.2*y,0.2-5.7*z+x*z
 
 cen = 1.0,2.0,3.0
 wid = 0.1,0.1,0.1

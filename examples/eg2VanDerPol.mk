@@ -8,7 +8,8 @@
 # ==========================================================================
 n   = 2
 var = x,y
-ff  = y,(1-x^2)*y-x
+# f multiplied out, the form the paper's numbers come from (see _template.txt)
+ff  = y,-x+y-x^2*y
 
 cen = -3.0,3.0
 wid = 0.1,0.1

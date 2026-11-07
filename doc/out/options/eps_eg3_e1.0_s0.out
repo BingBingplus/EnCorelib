@@ -1,0 +1,8 @@
+EnCorelib  mode=EndCover  method=tube  stepB=lohner  tubedegree=1  order=20  n=2
+         f  = (y, x^2)
+         B0 = {[0.95, 1.05],[-1.05, -0.95]}   H=4   eps=1
+time(ms)=657
+Hull(T=4.000000)={[-0.979116, -0.344595],[-0.275865, 0.938564]}
+B1=(-0.661856, 0.331349) +- (0.317261, 0.607215)
+wmax(B1)=1.214430
+#(C)=17  #E0=17  max_{B in C} wmax(B)=0.940593

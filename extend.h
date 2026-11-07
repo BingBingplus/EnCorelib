@@ -27,11 +27,20 @@
 //  run until t_m reaches the horizon.
 // ===========================================================================
 
+#include <sstream>
 #include "stepAB.h"
+#include "progress.h"
 
 // Reaching this many stages means the step sizes have collapsed; the box is
 // subdivided instead.
 static constexpr int MAX_STAGES = 20000;
+
+// "<what> at t=<t> (H=<H>)": failures say how far the scaffold got.
+inline std::string failedAt(const char* what, double t, double H) {
+    std::ostringstream os;
+    os << what << " at t=" << progress::num(t) << " (H=" << progress::num(H) << ")";
+    return os.str();
+}
 
 // ---------------------------------------------------------------------------
 //  Extend
@@ -47,7 +56,8 @@ static constexpr int MAX_STAGES = 20000;
 //  stepBtype   StepB variant, see stepAB.h
 //  tubedegree  1 = Euler tube, p >= 2 = Taylor tube of degree p
 //  dim         n
-//  debuglevel  1 = report violated containments (these should never fire)
+//  debuglevel  3 = report every stage, and any violated containment (these
+//              should never fire); see progress.h
 inline void Extend(IMap f, Scaffold& S, SolutionChain& chain,
                    double eps0, double delta, int degree, double H,
                    int stepBtype, int tubedegree, int dim, int debuglevel)
@@ -83,11 +93,13 @@ inline void Extend(IMap f, Scaffold& S, SolutionChain& chain,
             if (!(bound > 1e-13 * std::max(1.0, H))) break;
         }
     }
-    if (!moved) throw std::runtime_error("Extend: StepB cannot advance");
+    if (!moved)
+        throw std::runtime_error(failedAt("Extend: StepB cannot advance", tPrev, H));
 
     const double tNow = std::min(chain.time(), H);
     const double h    = tNow - tPrev;
-    if (!(h > 0.0)) throw std::runtime_error("Extend: stage of zero length");
+    if (!(h > 0.0))
+        throw std::runtime_error(failedAt("Extend: stage of zero length", tPrev, H));
 
     // -- 3. Full enclosure of the stage, at the length actually taken ------
     IVector F1;
@@ -102,12 +114,12 @@ inline void Extend(IMap f, Scaffold& S, SolutionChain& chain,
         }
     }
 
-    if (debuglevel == 1) {
+    if (debuglevel >= progress::STAGE) {
         for (int i = 0; i < dim; ++i) {
             if (F1[i].leftBound() > E0[i].leftBound() ||
                 F1[i].rightBound() < E0[i].rightBound()) {
-                std::cout << "[Extend warn] E0 not contained in F1 at coord "
-                          << i << ", t=" << tPrev << "\n";
+                progress::report("[Extend warn] E0 not contained in F1 at coord "
+                                 + std::to_string(i) + ", t=" + progress::num(tPrev));
             }
         }
     }
@@ -121,12 +133,12 @@ inline void Extend(IMap f, Scaffold& S, SolutionChain& chain,
         E1 = logNormBallTighten(f, degree, h, E0, mu, dim, E1);
     E1 = IntersectB(E1, F1);
 
-    if (debuglevel == 1) {
+    if (debuglevel >= progress::STAGE) {
         for (int i = 0; i < dim; ++i) {
             if (E1[i].leftBound() < F1[i].leftBound() ||
                 E1[i].rightBound() > F1[i].rightBound()) {
-                std::cout << "[Extend warn] E1 not contained in F1 at coord "
-                          << i << ", t=" << tNow << "\n";
+                progress::report("[Extend warn] E1 not contained in F1 at coord "
+                                 + std::to_string(i) + ", t=" + progress::num(tNow));
             }
         }
     }
@@ -148,6 +160,13 @@ inline void Extend(IMap f, Scaffold& S, SolutionChain& chain,
     G.E     = {E0, E1};
     G.F     = {F1, F1};
     G.nTube = 1;
+
+    if (debuglevel >= progress::STAGE)
+        progress::report("      stage " + std::to_string(S.m())
+                         + ": t=" + progress::num(tNow)
+                         + " h=" + progress::sci(h)
+                         + " wmax(E)=" + progress::sci(wmax(E1))
+                         + " E=" + progress::box(E1));
 }
 
 // ---------------------------------------------------------------------------
@@ -162,7 +181,13 @@ inline void ExtendToHorizon(IMap f, Scaffold& S, SolutionChain& chain,
         Extend(f, S, chain, eps0, delta, degree, H, stepBtype, tubedegree,
                dim, debuglevel);
     if (S.t.back() < H)
-        throw std::runtime_error("Extend: stage limit reached before the horizon");
+        throw std::runtime_error(failedAt("Extend: stage limit reached", S.t.back(), H));
+
+    if (debuglevel >= progress::REFINE)
+        progress::report("    scaffold laid out to t=" + progress::num(S.t.back())
+                         + ": " + std::to_string(S.m()) + " stages,"
+                         + " wmax(E_0)=" + progress::sci(wmax(S.E[0]))
+                         + " wmax(E_m)=" + progress::sci(wmax(S.E.back())));
 }
 
 // ---------------------------------------------------------------------------

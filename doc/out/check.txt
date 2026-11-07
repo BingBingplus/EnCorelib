@@ -1,0 +1,28 @@
+$ make check
+mode=EndCover, method=0 (tube), stepB=2 (lohnerHO+lognorm), order=20
+ok    Eg1 Volterra  H=4  eps=1.0            (1.48, 0.19) +- (0.36, 0.04)  #(C)=5
+ok    Eg2 VanDerPol H=1  eps=1.0            (-2.14, 0.57) +- (0.27, 0.22)  #(C)=1
+ok    Eg3 Quadratic H=1  eps=0.1            (0.28, -0.58) +- (0.15, 0.15)  #(C)=21
+ok    Eg4 FitzHugh  H=1  eps=0.1            (1.76, 0.17) +- (0.08, 0.10)  #(C)=20
+ok    Eg5 Lorenz    H=1  eps=1.0            (-6.95, 3.00, 35.14) +- (0.03, 0.01, 0.04)  #(C)=1
+ok    Eg6 Roessler  H=1  eps=1.0            (-1.74, 1.86, 0.03) +- (0.15, 0.18, 0.00)  #(C)=1
+
+method=2 (Split only), stepB=0
+ok    Eg1 Volterra  H=4  eps=1.0            (1.47, 0.19) +- (0.38, 0.05)  #(C)=5
+ok    Eg1 Volterra  H=4  eps=0.1            (1.46, 0.19) +- (0.26, 0.03)  #(C)=85
+ok    Eg2 VanDerPol H=1  eps=1.0            (-2.14, 0.57) +- (0.29, 0.29)  #(C)=1
+ok    Eg3 Quadratic H=1  eps=0.1            (0.28, -0.58) +- (0.15, 0.15)  #(C)=21
+ok    Eg5 Lorenz    H=1  eps=1.0            (-6.95, 3.00, 35.14) +- (0.03, 0.01, 0.04)  #(C)=1
+ok    Eg6 Roessler  H=1  eps=1.0            (-1.74, 1.86, 0.03) +- (0.16, 0.18, 0.00)  #(C)=1
+
+the other refinement strategies, StepB variants and tube degrees
+ok    Eg2 H=1 eps=0.5  method=1             (-2.13, 0.58) +- (0.20, 0.09)  #(C)=5
+ok    Eg2 H=1 eps=0.5  stepB=0              (-2.13, 0.58) +- (0.21, 0.10)  #(C)=5
+ok    Eg2 H=1 eps=0.5  stepB=3              (-2.13, 0.58) +- (0.20, 0.09)  #(C)=5
+ok    Eg2 H=1 eps=0.5  tubedegree=1         (-2.13, 0.58) +- (0.20, 0.09)  #(C)=5
+
+Boundary mode
+ok    Eg1 boundary 2D  H=1                  (0.08, 1.46) +- (0.01, 0.07)  #(C)=4
+ok    Eg6 boundary 3D  H=1                  (-1.74, 1.86, 0.03) +- (0.15, 0.18, 0.00)  #(C)=6
+
+18 passed, 0 failed

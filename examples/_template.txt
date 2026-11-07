@@ -11,11 +11,25 @@
 #    T            horizon H
 #    output_mode  0=time 1=+hull 2=+counts 3=+E0/E1 files 4=+plot files
 #    mode         0=EndCover 1=Boundary
-#    method       0=tube 1=bisect 2=lohner       (Table 2 uses method=2)
+#    method       0=tube 1=bisect 2=splitonly
 #    stepB        0=lohner 1=lohner+lognorm 2=lohnerHO+lognorm 3=lohnerHO
-#    tubedegree   0=order-1 1=Euler p>=2=Taylor-p
-#    debug        0=silent 1=containment checks
+#    tubedegree   0 or 1: the Euler tube of Section 5.2 (no other degree)
+#    debug        0=silent 1=one line per sub-box of B0 2=+Refine passes
+#                 3=+every stage (all on standard error)
 #
 #  Every field can be overridden on the command line, e.g.
 #    make run EG=examples/eg1Volterra.mk eps=0.1 T=5.5 method=0
+#
+#  Writing ff
+#    Use + - * / ^ and parentheses, the functions sin cos exp log sqrt sqr
+#    atan asin acos, constants such as 0.08, 8/3 or 1e-3, and no commas
+#    inside an f_i.
+#
+#    An interval evaluation depends on how the expression is written.  If
+#    SymEngine was found when the program was built, every f_i is first
+#    multiplied out into monomials, (1-x^2)*y-x becoming -x+y-x^2*y; without
+#    SymEngine it is evaluated as written.  The program prints the form it
+#    uses on its "f =" line.  The examples below are written in the
+#    multiplied-out form, which is the form the numbers in the paper were
+#    computed from, so they give the same numbers in both builds.
 # ==========================================================================

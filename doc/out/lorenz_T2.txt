@@ -1,0 +1,9 @@
+$ make run EG=examples/eg5Lorenz.mk T=2
+EnCorelib  mode=EndCover  method=tube  stepB=lohner  tubedegree=1  order=20  n=3
+         f  = (-10*x+10*y, 28*x-y-x*z, (-8/3)*z+x*y)
+         B0 = {[14.999, 15.001],[14.999, 15.001],[35.999, 36.001]}   H=2   eps=1
+time(ms)=934
+Hull(T=2.000000)={[3.424696, 3.454747],[5.282999, 5.326706],[15.608183, 15.640387]}
+B1=(3.439721, 5.304853, 15.624285) +- (0.015026, 0.021853, 0.016102)
+wmax(B1)=0.043706
+#(C)=1  #E0=1  max_{B in C} wmax(B)=0.043706

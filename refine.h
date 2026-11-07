@@ -53,6 +53,8 @@ enum RefineMethod {
 
 // A stage holds at most 2^ELL_MAX mini-steps; l_i controls how fine a grid
 // EulerTube works on, and the bound of Lemma 6.1 is reached well inside this.
+// The cap also keeps the mini-steps clear of errors caused by the machine
+// precision.
 static constexpr int ELL_MAX = 6;
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -116,7 +118,8 @@ inline void Evaluate(Scaffold& S, IMap f, SolutionChain& chain, int degree,
             }
 
             if (!chain.marchTo(tj))
-                throw std::runtime_error("Refine: StepB cannot advance");
+                throw std::runtime_error(failedAt("Refine: StepB cannot advance",
+                                                  chain.time(), S.t.back()));
 
             const double muj = logNorm(computeJacobian(f, Fj), dim);
             IVector      Ej  = chain.hull();
@@ -233,8 +236,9 @@ inline int EulerTube(Scaffold& S, int idx, int dim, IMap f, int debuglevel) {
             startSegment(G.E[static_cast<size_t>(j - 1)], q, r0);
             step = 0;
             ++segments;
-            if (debuglevel == 1)
-                std::cout << "[EulerTube] restart at stage=" << idx << " j=" << j << "\n";
+            if (debuglevel >= progress::STAGE)
+                progress::report("      [EulerTube] restart at stage=" + std::to_string(idx)
+                                 + " j=" + std::to_string(j));
         }
 
         const double rPrev = r0 * std::exp(static_cast<double>(step)     * mu * h1);
@@ -356,6 +360,7 @@ inline bool CanTerminate(const std::vector<char>& freezeFlag, bool needSplit) {
 //              next Extend can carry on from there.
 //  method      RefineMethod, see the enum above
 //  eps0        Refine returns once wmax(S.E.back()) <= eps0
+//  debuglevel  2 = one line per pass of the main loop; see progress.h
 //  target      contraction point for Split()
 inline void Refine(Scaffold& S,
                    int dim,
@@ -411,8 +416,11 @@ inline void Refine(Scaffold& S,
 
     tubes();
 
+    int pass = 0;
     while (eps0 < wmax(S.E.back())) {
         const double before = wmax(S.E.back());
+        ++pass;
+        int nBisected = 0, nSplit = 0;
 
         // ---- Part A : refine every stage that is not frozen --------------
         bool bisected = false;
@@ -447,10 +455,12 @@ inline void Refine(Scaffold& S,
                 int levels = 1;
                 if (useTube && G.hTube > 0.0 && h > G.hTube)
                     levels = static_cast<int>(std::ceil(std::log2(h / G.hTube)));
-                if (G.ell + levels > ELL_MAX || !Bisect(S, i, levels))
+                if (G.ell + levels > ELL_MAX || !Bisect(S, i, levels)) {
                     freezeFlag[static_cast<size_t>(i)] = 1;
-                else
+                } else {
                     bisected = true;
+                    ++nBisected;
+                }
             }
         }
 
@@ -465,6 +475,7 @@ inline void Refine(Scaffold& S,
         if (needSplit) {
             if (wmax(S.E[0]) == 0.0) break;     // E_0 is a point
             Split(S, dim, target);
+            ++nSplit;
             reevaluate();
         }
 
@@ -472,6 +483,7 @@ inline void Refine(Scaffold& S,
         if (CanTerminate(freezeFlag, needSplit) && eps0 < wmax(S.E.back())) {
             if (wmax(S.E[0]) == 0.0) break;
             Split(S, dim, target);
+            ++nSplit;
             reevaluate();
         }
 
@@ -480,7 +492,22 @@ inline void Refine(Scaffold& S,
         if (!needSplit && !(wmax(S.E.back()) < before)) {
             if (wmax(S.E[0]) == 0.0) break;
             Split(S, dim, target);
+            ++nSplit;
             reevaluate();
+        }
+
+        if (debuglevel >= progress::REFINE) {
+            int nFrozen = 0;
+            for (int i = 1; i <= m; ++i)
+                if (freezeFlag[static_cast<size_t>(i)]) ++nFrozen;
+            progress::report("    Refine pass " + std::to_string(pass)
+                             + ": wmax(E_m)=" + progress::sci(wmax(S.E.back()))
+                             + " wmax(E_0)=" + progress::sci(wmax(S.E[0]))
+                             + " mu_max=" + progress::num(muMaxOf(S), 3)
+                             + " m=" + std::to_string(m)
+                             + " bisected=" + std::to_string(nBisected)
+                             + " frozen=" + std::to_string(nFrozen)
+                             + " splits=" + std::to_string(nSplit));
         }
     }
 }

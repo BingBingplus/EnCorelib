@@ -8,7 +8,8 @@
 # ==========================================================================
 n   = 2
 var = x,y
-ff  = x-x^3/3-y+0.5,0.08*(x+0.7-0.8*y)
+# f multiplied out, the form the paper's numbers come from (see _template.txt)
+ff  = 0.5+x-y+(-1/3)*x^3,0.056+0.08*x-0.064*y
 
 cen = 1.0,0.0
 wid = 0.1,0.1

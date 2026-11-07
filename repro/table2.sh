@@ -45,11 +45,11 @@ TEX=$OUT/table2.tex
 # --- the six problems of Table 1 -------------------------------------------
 #      tag | name | n | vars | rhs | initial box (lo hi pairs) | horizons
 eg1="Eg1|Lotka-Volterra|2|x y|2*x-2*x*y -y+x*y|0.9 1.1 2.9 3.1|4 5.5"
-eg2="Eg2|VanDerPol|2|x y|y (1-x^2)*y-x|-3.1 -2.9 2.9 3.1|1 2"
+eg2="Eg2|VanDerPol|2|x y|y -x+y-x^2*y|-3.1 -2.9 2.9 3.1|1 2"
 eg3="Eg3|Quadratic|2|x y|y x^2|0.95 1.05 -1.05 -0.95|1 4"
-eg4="Eg4|FitzHugh|2|x y|x-x^3/3-y+0.5 0.08*(x+0.7-0.8*y)|0.9 1.1 -0.1 0.1|1 4"
-eg5="Eg5|Lorenz|3|x y z|10*(y-x) x*(28-z)-y x*y-8*z/3|14.999 15.001 14.999 15.001 35.999 36.001|1 4"
-eg6="Eg6|Roessler|3|x y z|-y-z x+0.2*y 0.2+z*(x-5.7)|0.9 1.1 1.9 2.1 2.9 3.1|1 4"
+eg4="Eg4|FitzHugh|2|x y|0.5+x-y+(-1/3)*x^3 0.056+0.08*x-0.064*y|0.9 1.1 -0.1 0.1|1 4"
+eg5="Eg5|Lorenz|3|x y z|-10*x+10*y 28*x-y-x*z (-8/3)*z+x*y|14.999 15.001 14.999 15.001 35.999 36.001|1 4"
+eg6="Eg6|Roessler|3|x y z|-y-z x+0.2*y 0.2-5.7*z+x*z|0.9 1.1 1.9 2.1 2.9 3.1|1 4"
 
 WANT=${*:-"eg1 eg2 eg3 eg4 eg5 eg6"}
 

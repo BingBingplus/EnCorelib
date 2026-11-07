@@ -1,0 +1,9 @@
+$ make run-eg1Volterra
+EnCorelib  mode=EndCover  method=tube  stepB=lohner  tubedegree=1  order=20  n=2
+         f  = (2*x-2*x*y, -y+x*y)
+         B0 = {[0.9, 1.1],[2.9, 3.1]}   H=4   eps=1
+time(ms)=1029
+Hull(T=4.000000)={[1.093880, 1.853071],[0.146098, 0.243519]}
+B1=(1.473475, 0.194809) +- (0.379596, 0.048710)
+wmax(B1)=0.759191
+#(C)=5  #E0=5  max_{B in C} wmax(B)=0.551660

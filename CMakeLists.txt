@@ -98,6 +98,10 @@ EnCorelib_configure(Encoretraj)
 add_executable(capdref repro/competitors/capd_compare.cpp)
 EnCorelib_configure(capdref)
 
+# Box-by-box check of a cover (repro/audit_cover.sh).
+add_executable(Encoreaudit tools/audit_cover.cpp)
+EnCorelib_configure(Encoreaudit)
+
 # ────────────────────────────────────────────────────────────────────────────
 #  Self-test:  ctest    (or: bash repro/check.sh)
 # ────────────────────────────────────────────────────────────────────────────
@@ -109,8 +113,8 @@ add_test(NAME selftest
 # ────────────────────────────────────────────────────────────────────────────
 #  Install
 # ────────────────────────────────────────────────────────────────────────────
-install(TARGETS EnCorelib Encoretraj capdref DESTINATION bin)
+install(TARGETS EnCorelib Encoretraj capdref Encoreaudit DESTINATION bin)
 install(FILES
-    types.h symparse.h stepAB.h extend.h refine.h endcover.h boundary.h
+    types.h progress.h symparse.h stepAB.h extend.h refine.h endcover.h boundary.h
     DESTINATION include/EnCorelib)
 install(DIRECTORY examples/ DESTINATION share/EnCorelib/examples)

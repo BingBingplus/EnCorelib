@@ -1,0 +1,52 @@
+$ make run EG=examples/eg5Lorenz.mk T=100 stepB=3 debug=1
+EnCorelib  mode=EndCover  method=tube  stepB=lohnerHO  tubedegree=1  order=20  n=3
+         f  = (-10*x+10*y, 28*x-y-x*z, (-8/3)*z+x*y)
+         B0 = {[14.999, 15.001],[14.999, 15.001],[35.999, 36.001]}   H=100   eps=1
+     time    run depth  wmax(B) wmax(E_m) queue    done  outcome
+     0.4s      1     0  2.0e-03         -     8    0.0%  failed: Extend: StepB cannot advance at t=3.83076 (H=100), split into 8
+     0.8s      2     1  1.0e-03         -    15    0.0%  failed: Extend: StepB cannot advance at t=4.60846 (H=100), split into 8
+     1.3s      3     2  5.0e-04         -    22    0.0%  failed: Extend: StepB cannot advance at t=5.45192 (H=100), split into 8
+     1.8s      4     3  2.5e-04         -    29    0.0%  failed: Extend: StepB cannot advance at t=6.21001 (H=100), split into 8
+     2.4s      5     4  1.2e-04         -    36    0.0%  failed: Extend: StepB cannot advance at t=7.00161 (H=100), split into 8
+     3.1s      6     5  6.2e-05         -    43    0.0%  failed: Extend: StepB cannot advance at t=7.74072 (H=100), split into 8
+     3.8s      7     6  3.1e-05         -    50    0.0%  failed: Extend: StepB cannot advance at t=8.58075 (H=100), split into 8
+     4.6s      8     7  1.6e-05         -    57    0.0%  failed: Extend: StepB cannot advance at t=8.68634 (H=100), split into 8
+     5.4s      9     8  7.8e-06         -    64    0.0%  failed: Extend: StepB cannot advance at t=8.70801 (H=100), split into 8
+     6.2s     10     9  3.9e-06         -    71    0.0%  failed: Extend: StepB cannot advance at t=8.97363 (H=100), split into 8
+     7.1s     11    10  2.0e-06         -    78    0.0%  failed: Extend: StepB cannot advance at t=9.50879 (H=100), split into 8
+     8.1s     12    11  9.8e-07         -    85    0.0%  failed: Extend: StepB cannot advance at t=10.5101 (H=100), split into 8
+     9.2s     13    12  4.9e-07         -    92    0.0%  failed: Extend: StepB cannot advance at t=12.0644 (H=100), split into 8
+    10.3s     14    13  2.4e-07         -    99    0.0%  failed: Extend: StepB cannot advance at t=12.8594 (H=100), split into 8
+    11.4s     15    14  1.2e-07         -   106    0.0%  failed: Extend: StepB cannot advance at t=13.7885 (H=100), split into 8
+    12.8s     16    15  6.1e-08         -   113    0.0%  failed: Extend: StepB cannot advance at t=14.8831 (H=100), split into 8
+    14.3s     17    16  3.1e-08         -   120    0.0%  failed: Extend: StepB cannot advance at t=15.9163 (H=100), split into 8
+    15.8s     18    17  1.5e-08         -   127    0.0%  failed: Extend: StepB cannot advance at t=16.7625 (H=100), split into 8
+    17.3s     19    18  7.6e-09         -   134    0.0%  failed: Extend: StepB cannot advance at t=17.4754 (H=100), split into 8
+    19.2s     20    19  3.8e-09         -   141    0.0%  failed: Extend: StepB cannot advance at t=18.3845 (H=100), split into 8
+    20.8s     21    20  1.9e-09         -   148    0.0%  failed: Extend: StepB cannot advance at t=19.127 (H=100), split into 8
+    22.4s     22    21  9.5e-10         -   155    0.0%  failed: Extend: StepB cannot advance at t=19.7839 (H=100), split into 8
+    24.1s     23    22  4.8e-10         -   162    0.0%  failed: Extend: StepB cannot advance at t=20.6182 (H=100), split into 8
+    25.8s     24    23  2.4e-10         -   169    0.0%  failed: Extend: StepB cannot advance at t=21.2234 (H=100), split into 8
+    27.6s     25    24  1.2e-10         -   176    0.0%  failed: Extend: StepB cannot advance at t=22.0624 (H=100), split into 8
+    29.5s     26    25  6.0e-11         -   183    0.0%  failed: Extend: StepB cannot advance at t=22.2977 (H=100), split into 8
+    31.4s     27    26  3.0e-11         -   190    0.0%  failed: Extend: StepB cannot advance at t=22.951 (H=100), split into 8
+    33.3s     28    27  1.5e-11         -   197    0.0%  failed: Extend: StepB cannot advance at t=23.8743 (H=100), split into 8
+    35.2s     29    28  7.5e-12         -   204    0.0%  failed: Extend: StepB cannot advance at t=24.4818 (H=100), split into 8
+    37.4s     30    29  3.7e-12         -   211    0.0%  failed: Extend: StepB cannot advance at t=24.6143 (H=100), split into 8
+    39.6s     31    30  1.9e-12         -   218    0.0%  failed: Extend: StepB cannot advance at t=24.7747 (H=100), split into 8
+    41.8s     32    31  9.3e-13         -   225    0.0%  failed: Extend: StepB cannot advance at t=25.1625 (H=100), split into 8
+    44.0s     33    32  4.7e-13         -   232    0.0%  failed: Extend: StepB cannot advance at t=25.6113 (H=100), split into 8
+    46.2s     34    33  2.3e-13         -   239    0.0%  failed: Extend: StepB cannot advance at t=26.0187 (H=100), split into 8
+    48.3s     35    34  1.2e-13         -   246    0.0%  failed: Extend: StepB cannot advance at t=26.3337 (H=100), split into 8
+    50.5s     36    35  5.7e-14         -   253    0.0%  failed: Extend: StepB cannot advance at t=26.6283 (H=100), split into 8
+    52.6s     37    36  2.8e-14         -   260    0.0%  failed: Extend: StepB cannot advance at t=26.6501 (H=100), split into 8
+    54.7s     38    37  1.4e-14         -   267    0.0%  failed: Extend: StepB cannot advance at t=25.9628 (H=100), split into 8
+    57.1s     39    38  7.1e-15         -   270    0.0%  failed: Extend: StepB cannot advance at t=26.5727 (H=100), split into 4
+    59.3s     40    39  7.1e-15         -   273    0.0%  failed: Extend: StepB cannot advance at t=26.5367 (H=100), split into 4
+    61.5s     41    40  7.1e-15         -   272    0.0%  failed: Extend: StepB cannot advance at t=26.583 (H=100)
+[EndCover failed] Extend: StepB cannot advance at t=26.583 (H=100)
+The sub-box of B0 on which this happened is a single point (depth 40 of the subdivision),
+so subdividing B0 further cannot help: the solution through that point
+cannot be enclosed up to the horizon.
+Try a smaller T.
+make: *** [Makefile:194: run] Error 3

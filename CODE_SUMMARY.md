@@ -23,6 +23,7 @@ reachable set.
 ```
 version_2026/
 ├── types.h                # box utilities + the two core structs (Scaffold / MiniScaffold)
+├── progress.h             # the progress reports selected by `debug` (standard error)
 ├── symparse.h             # right-hand-side string pre-processing (optional SymEngine)
 │
 ├── stepAB.h               # ★ StepA / the four StepB variants / tube thresholds / SolutionChain
@@ -40,16 +41,21 @@ version_2026/
 ├── repro/                 # scripts: table2 / figure1 / figure4 / check / verify
 │   └── competitors/       # reference integrator + VNODE-LP / INTLAB drivers
 ├── tools/                 # plot scripts (Python/MATLAB), Encoretraj, run.sh
+├── doc/                   # the user guide (userguide.tex/.pdf) and the scripts
+│                          #   that regenerate its examples, tables and figures
 └── extras/                # additional diagnostic programs
 ```
 
 **Dependency order** (each layer uses only the ones above it):
 
 ```
+types.h  →  progress.h
 types.h  →  stepAB.h  →  extend.h  →  refine.h
                                         ↓
                          endcover.h ←  boundary.h  →  EnCorelib.cpp
 ```
+
+`progress.h` is used by `extend.h`, `refine.h`, `endcover.h` and `boundary.h`.
 
 ---
 
@@ -150,6 +156,26 @@ struct CoverResult {
 
 ---
 
+## 📄 **progress.h** — progress reports
+
+**What it does.**  Formats and prints the reports that the `debug` argument
+selects.  Every line goes to standard error, prefixed with the wall-clock
+time since start-up, so standard output still holds only the results.
+
+| function | description |
+|------|------|
+| `progress::elapsed()` | seconds since the first call (made at the top of `main`) |
+| `progress::report(text)` | prints one line with the elapsed time in front |
+| `progress::sci(x)`, `num(x)`, `percent(s)`, `box(B)` | number and box formatting |
+
+| `debug` | reported by | what |
+|------|------|------|
+| 1 | `EndCover`, `TwoDimEncAlgo`, `ThreeDimEncAlgo` | one line per sub-box of `B0` (or edge segment, or face) |
+| 2 | `ExtendToHorizon`, `Refine` | one line per scaffold laid out, one per pass of Refine |
+| 3 | `Extend`, `EulerTube` | one line per stage; containment checks; tube restarts |
+
+---
+
 ## 📄 **symparse.h** — right-hand-side string pre-processing
 
 **What it does.**  Puts a user-written expression into the form the
@@ -157,17 +183,23 @@ right-hand-side parser accepts.
 
 | function | description | in | out |
 |------|------|------|------|
-| `basic_sanitize(s)` | strips whitespace, inserts implicit products | `"2x + 3(y)"` → `"2*x+3*(y)"` | string |
-| `expand_expression(s)` | entry point: optional SymEngine expansion, otherwise `basic_sanitize` | string | string |
+| `rewrite_scientific(s)` | constants in scientific notation become quotients, which the parser evaluates in interval arithmetic | `"2.5e-3*x"` → `"(2.5/10^3)*x"` | string |
+| `basic_sanitize(s)` | strips whitespace, inserts implicit products after a constant or `)`; digits inside a name stay in the name | `"2x + 3(y)"` → `"2*x+3*(y)"` | string |
+| `expand_expression(s)` | entry point: `rewrite_scientific`, then optional SymEngine expansion, then `basic_sanitize` | string | string |
 
 **Compile switch.**  With `-DHAVE_SYMENGINE` the SymEngine path is used
 (`^` ↔ `**` conversion plus `expand`); otherwise only the light clean-up runs.
-Both paths give the same result on the built-in examples; SymEngine is needed
-only where an expression such as `(x+y)^20` has to be expanded for real.
 
 **Note.**  SymEngine rewrites expressions, e.g.
 `x-x^3/3-y+0.5` → `0.5+x-y+(-1/3)*x^3`.  The rewritten form is what the header
-line prints.
+line prints.  Interval evaluation depends on that form, so the two paths can
+give different covers for the same input (Eg2 `(1-x^2)*y-x` and Eg5 Lorenz do).
+The examples and the scripts of `repro/` are therefore written in the
+multiplied-out form, which gives the same numbers on both paths.
+
+**Constants.**  The parser reads a decimal such as `0.1` as the nearest
+double, an interval of width zero; a quotient such as `1/10` or `8/3` is
+evaluated in interval arithmetic and encloses the exact value.
 
 ---
 
@@ -265,19 +297,19 @@ When the ball cannot be computed, E is returned unchanged, i.e. not tightened.
 | function | description | in | out |
 |------|------|------|------|
 | `hEuler(H, M, mu, delta)` | the Euler tube threshold | stage length, `‖f^[2]‖`, μ, δ | double |
-| `taylorCoeffNorm(f, B, p, degreeAvail)` | `‖f^[p+1]‖` | — | double |
-| `hTaylorStep(H, Cbar, mu, delta, p)` | the degree-p threshold (`p=1` is `hEuler`) | — | double |
-| `computeHTube(f, F, H, delta, mu, tubedegree, degreeAvail)` | dispatcher: `tubedegree==1` → Euler, `≥2` → Taylor-p | — | double |
+| `computeHTube(f, F, H, delta, mu, tubedegree, degreeAvail)` | `h_euler` with `M = ‖J_f(F)·f(F)‖/2 ≥ ‖f^[2](F)‖` | — | double |
 
 ```
-                  ⎧ min{H, 2μδ / (M(e^{μH}−1) − μ²δ)}   μ > 0
-h_euler(H,M,μ,δ) = ⎨ min{H, δ / (MH)}                    μ = 0
-                  ⎩ min{H, 2μδ / (M(e^{μH}−1))}         μ < 0
+                  ⎧ min{H, μδ / (M(e^{μH}−1))}             μ > 0
+h_euler(H,M,μ,δ) = ⎨ min{H, δ / (MH)}                       μ = 0
+                  ⎩ min{H, 2μδ / (2M(e^{μH}−1) − μ²δ)}     μ < 0
 ```
 
-While `0 < h ≤ h_euler` the Euler polygon stays inside the δ-tube of the exact
-trajectory.  A return value of `0` means "no usable tube at this stage", which
-is what an overflowing `e^{μH}` amounts to.
+exactly as in (2.6).  While `0 < h ≤ h_euler` the Euler polygon stays inside the
+δ-tube of the exact trajectory.  `M = 0` (the Euler polygon is exact) gives
+`H`; a return value of `0` means "no usable tube at this stage", which is what
+an overflowing `e^{μH}` amounts to.  `EulerTube` follows the Euler polygon, so
+this is the only threshold; the command line accepts `tubedegree` 0 or 1 only.
 
 ### ★ `SolutionChain` — how a chain of mini-quads is evaluated
 
@@ -306,8 +338,8 @@ applied to the original `E₀`**.  A hull is taken only when some `E_j` is
 |---------|------|------|------|
 | `SolutionChain(f, order, E0, stepBtype)` | construct, anchored at E₀; `stepBtype` picks the representation (as in StepB) | — | — |
 | `restart(E0)` | start again at a new (smaller) E₀ from `t = 0`; used after `Split` | IVector | — |
-| `proposedStep()` | the step StepB **would like** to take next | — | double |
-| `step(hmax)` | advance by at most hmax: the step it wants when that fits, exactly hmax when it does not | double | bool |
+| `proposedStep()` | the length of the last step, a guide to the next one | — | double |
+| `step(hmax)` | advance by at most hmax: the step StepB's error control chooses, capped at hmax, or exactly hmax when the last step was already longer | double | bool |
 | `marchTo(t)` | reach t exactly, halving any step that fails | double | bool |
 | `hull()` / `time()` | the current hull / the current time | — | — |
 
@@ -323,7 +355,10 @@ is never re-enclosed.
 
 **Landing exactly.**  The reported box must be the solution at the target
 instant, so the final piece shorter than one step is covered by
-`step(remaining)` **exactly**.
+`step(remaining)` **exactly**.  The error control picks every step afresh and
+may pick a longer one than the last, so a step it chooses is capped at `hmax`
+(the solver's maximal step); without the cap a step could run past the target
+time, and a stage past the step that StepA certified.
 
 **Not copyable.**  The chain owns `m_f` (declared before the propagator) and
 `= delete`s the copy operations.
@@ -365,8 +400,11 @@ inline void RebuildScaffold(...);   // drop the time grid and lay a new one from
 **Initial values of the new mini-scaffold:** `ℓ = 0` (one mini-step),
 `E = {E₀, E₁}`, `F = {F₁, F₁}`, `mu = {μ, μ}`, `nTube = 1`.
 
-**Checks under `debuglevel = 1`** (these should never fire): `E₀ ⊆ F₁`,
-`E₁ ⊆ F₁`.
+**Checks under `debuglevel ≥ 3`** (these should never fire): `E₀ ⊆ F₁`,
+`E₁ ⊆ F₁`.  At the same level every appended stage is reported (`t`, the
+stage length, `E`); `ExtendToHorizon` reports each finished layout at
+`debuglevel ≥ 2`.  A failure message names the time reached, e.g.
+`Extend: StepB cannot advance at t=26.583 (H=100)`.
 
 ---
 
@@ -588,7 +626,8 @@ using EndEncFn = std::function<std::pair<IVector, IVector>(
 | `midpoint_vec(box)` | midpoint, as a vector of doubles | IVector | vector\<double\> |
 | `boxesEqual(a, b, tol=0)` | endpoint-by-endpoint comparison | two IVector | bool |
 | `splitAllDims(box)` | bisects along **every coordinate of positive width** | IVector | `vector<IVector>` (2^d of them, d = number of such coordinates) |
-| `EndCover(B0, eps0, H, endEnc, maxSplits=2e6, coverSet=COVER_ALL)` | the main loop | — | EndCoverResult |
+| `shareOf(B, B0)` | the share of `B0` that `B` makes up (for the progress report) | two IVector | double |
+| `EndCover(B0, eps0, H, endEnc, maxSplits=2e6, coverSet=COVER_ALL, debuglevel=0)` | the main loop | — | EndCoverResult |
 
 **★ `splitAllDims` skips degenerate coordinates.**  Splitting a coordinate of
 zero width would only produce duplicate children.  When every coordinate is
@@ -610,7 +649,13 @@ uncovered → `splitAllDims(B)` and re-queue.  Those children are the
 
 **Exceptions.**  When `endEnc` throws, B is **not** dropped: it is subdivided
 and re-queued.  Only a box that is already a point, and so cannot be
-subdivided, propagates the exception upwards.
+subdivided, propagates the failure upwards, as `endcover::PointFailure`:
+subdividing cannot help then, and `main` suggests a smaller `T`.
+
+**Progress.**  Every queued box carries its depth in the subdivision of `B0`.
+With `debuglevel ≥ 1` each processed box is reported on one line (depth,
+`wmax(B)`, resolved / split / failed, `wmax(E_m)`, queue length, share of `B0`
+resolved), and a summary line closes the run.
 
 ---
 
@@ -691,11 +736,15 @@ of `End(B0,H)`.
 | `mode` | 0 = EndCover, 1 = Boundary |
 | `method` | 0 = tube, 1 = bisect, 2 = splitonly |
 | `stepB` | 0 = lohner, 1 = +logNorm, 2 = lohnerHO+logNorm, 3 = lohnerHO |
-| `tubedegree` | 0 = order−1, 1 = Euler, p ≥ 2 = Taylor-p |
+| `tubedegree` | 0 or 1 = the Euler tube (no other degree is accepted) |
 | `eps` | the ε of eq. (1.3) |
 | `order` | the Taylor order k of StepB (the paper uses 20) |
 | `T` | the horizon H |
-| `debug` | 0 silent, 1 print the containment checks |
+| `debug` | progress reports on standard error: 0 silent, 1 one line per sub-box of B0, 2 + scaffold layouts and Refine passes, 3 + every stage and the containment checks |
+
+**Exit status.**  0 success; 2 bad arguments or an unreadable right-hand
+side (reported as `Cannot read the right-hand side ...`); 3 the computation
+failed (`[EndCover failed]` / `[Boundary failed]`, with the time reached).
 
 ### Internal functions
 
@@ -748,6 +797,7 @@ already produced is not left sitting in the buffer.
 | `figure4.sh` | the data behind Figure 4: E0/E1 for the six examples |
 | `check.sh` | the self-test, 18 assertions (`make check`); `BASELINE=1` re-takes the baseline |
 | `verify_cover.sh` | integrates a grid of sample points of B0 separately with `Encoretraj` and confirms that every image lies inside some box of C; runs all three `method` values |
+| `audit_cover.sh` | box-by-box check (`make audit`): every box of C must meet the images of the centre and corners of its own sub-box of B0 (`Encoreaudit`) |
 | `competitors/` | the reference integrator (`make capdref`) and the VNODE-LP / INTLAB driver templates |
 
 ## 📁 **tools/**
@@ -755,6 +805,7 @@ already produced is not left sitting in the buffer.
 | file | description |
 |------|------|
 | `trajectory.cpp` → `Encoretraj` | validated trajectory printer (Figure 1, top row; also the independent reference for `verify_cover.sh`) |
+| `audit_cover.cpp` → `Encoreaudit` | reads E0.txt/E1.txt and checks each box of the cover against the images of its own sub-box (`repro/audit_cover.sh`) |
 | `run.sh` | invokes EnCorelib from the Makefile; splits `var`/`ff` on commas here, so the shell never sees the parentheses in `x*(28-z)-y` |
 | `boxio.py` | box-file reader |
 | `plot_boxes.py` | Figure 4 style plots (two panels in 2D, three projections in 3D) |
@@ -936,9 +987,10 @@ operators Refine uses** to refine the scaffold once those steps exist.
 
 | tubedegree | meaning |
 |------------|------|
-| 1 | the Euler threshold `h_euler`, equation (2.6) |
-| p ≥ 2 | the degree-p Taylor threshold |
-| 0 | `order - 1` |
+| 0 or 1 | the Euler tube of Section 5.2 with the threshold `h_euler` of (2.6) |
+
+Other degrees are rejected: `EulerTube` follows the Euler polygon (2.5), and a
+degree-p threshold is valid only for a degree-p Taylor polygon.
 
 ### The rest
 

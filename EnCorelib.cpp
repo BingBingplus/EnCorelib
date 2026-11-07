@@ -28,12 +28,16 @@
 //                   2 = Split only
 //    stepB        0 = Lohner              1 = Lohner + logNorm
 //                 2 = Lohner-HO + logNorm 3 = Lohner-HO
-//    tubedegree   0 = order-1             1 = Euler tube   p>=2 = Taylor-p
+//    tubedegree   0 or 1 = the Euler tube of Section 5.2, threshold (2.6)
 //    n            dimension
 //    eps          the error bound eps of equation (1.3)
 //    order        Taylor order k used by StepB (the paper uses 20)
 //    T            the horizon H
-//    debug        0 = silent, 1 = report containment checks
+//    debug        progress reports on standard error (see progress.h)
+//                   0 = silent
+//                   1 = one line per sub-box of B0
+//                   2 = + one line per scaffold and per pass of Refine
+//                   3 = + one line per stage, and the containment checks
 //    lo_i hi_i    the initial box B0
 //
 //  OUTPUT LEVELS (progressive: level k also prints everything below k)
@@ -171,7 +175,8 @@ static void usage() {
       "  mode        0=EndCover 1=Boundary\n"
       "  method      0=tube (default) 1=bisect 2=splitonly\n"
       "  stepB       0=lohner 1=lohner+lognorm 2=lohnerHO+lognorm 3=lohnerHO\n"
-      "  tubedegree  0=order-1 1=Euler p>=2=Taylor-p\n";
+      "  tubedegree  0 or 1: the Euler tube (the only one available)\n"
+      "  debug       0=silent 1=per sub-box 2=+Refine passes 3=+stages (on stderr)\n";
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -179,6 +184,7 @@ static void usage() {
 // ═══════════════════════════════════════════════════════════════════════════
 int main(int argc, char* argv[]) {
     std::cout << std::unitbuf;
+    progress::elapsed();          // the progress reports count from here
 
     int    output_mode = 2;
     int    mode        = 0;   // 0 = EndCover, 1 = Boundary
@@ -218,6 +224,10 @@ int main(int argc, char* argv[]) {
         if (eps   <= 0.0) throw std::runtime_error("eps must be > 0");
         if (T     <= 0.0) throw std::runtime_error("T must be > 0");
         if (order <  3  ) throw std::runtime_error("order must be >= 3");
+        if (debuglevel < 0) throw std::runtime_error("debug must be 0, 1, 2 or 3");
+        if (tubedegree < 0 || tubedegree > 1)
+            throw std::runtime_error("tubedegree must be 0 or 1: EulerTube follows the Euler"
+                                     " polygon, whose step-size threshold is (2.6)");
 
         if (argc < 11 + 3 * n) throw std::runtime_error("missing interval bounds");
         B.resize(n);
@@ -233,12 +243,19 @@ int main(int argc, char* argv[]) {
         return 2;
     }
 
-    if (tubedegree <= 0) tubedegree = std::max(1, order - 1);
+    tubedegree = 1;                // 0 and 1 both select the Euler tube
 
     // ── Build the vector field ──────────────────────────────────────────
     for (int i = 0; i < n; ++i) SFun[i] = expand_expression(SFun[i]);
     const std::string mapStr = Convert_to_IMap(SVar, SFun);
     const int degree = order;
+    try {
+        IMap check(mapStr, 3.0);
+    } catch (const std::exception& e) {
+        std::cerr << "Cannot read the right-hand side " << mapStr << "\n"
+                  << e.what() << "\n";
+        return 2;
+    }
     IMap F(mapStr, 3.0);       // degree-3 jet: enough for Jacobians
 
     const double eps0  = eps;
@@ -279,7 +296,12 @@ int main(int argc, char* argv[]) {
 
         endcover::EndCoverResult res;
         try {
-            res = endcover::EndCover(B, eps0, T, endEnc, 2000000, endcover::COVER_ALL);
+            res = endcover::EndCover(B, eps0, T, endEnc, 2000000, endcover::COVER_ALL,
+                                     debuglevel);
+        } catch (const endcover::PointFailure& ex) {
+            std::cerr << "[EndCover failed] " << ex.what()
+                      << "\nTry a smaller T.\n";
+            return 3;
         } catch (const std::exception& ex) {
             std::cerr << "[EndCover failed] " << ex.what()
                       << "\nTry a larger eps or a smaller T.\n";
@@ -293,12 +315,18 @@ int main(int argc, char* argv[]) {
     // ─────────────────────────────────────────────────────────────────────
     else {
         Scaffold S = Init(B, delta, T);
-        if (n == 2)
-            TwoDimEncAlgo(Dat, F, S, eps0, delta, degree, T,
-                          method, stepB_type, tubedegree, debuglevel, n, chat);
-        else
-            ThreeDimEncAlgo(Dat, F, S, eps0, delta, degree, T,
-                            method, stepB_type, tubedegree, debuglevel, n, chat);
+        try {
+            if (n == 2)
+                TwoDimEncAlgo(Dat, F, S, eps0, delta, degree, T,
+                              method, stepB_type, tubedegree, debuglevel, n, chat);
+            else
+                ThreeDimEncAlgo(Dat, F, S, eps0, delta, degree, T,
+                                method, stepB_type, tubedegree, debuglevel, n, chat);
+        } catch (const std::exception& ex) {
+            std::cerr << "[Boundary failed] " << ex.what()
+                      << "\nTry a larger eps or a smaller T.\n";
+            return 3;
+        }
     }
 
     auto t1 = std::chrono::high_resolution_clock::now();
@@ -327,8 +355,9 @@ int main(int argc, char* argv[]) {
         std::cout << "#(C)=" << Dat.C.size() << "  #E0=" << Dat.E0.size()
                   << "  max_{B in C} wmax(B)=" << wmaxC << "\n";
         if (mode == 0 && wmaxC > eps0)
-            std::cout << "note: C contains boxes wider than eps; these come from"
-                         " sub-boxes that were split further (see endcover.h).\n";
+            std::cout << "note: C contains boxes wider than eps: for some sub-box of B0"
+                         " Refine could not\n      reach eps even with E_0 shrunk to a"
+                         " point.  Those boxes are still enclosures.\n";
     }
 
     // ── Files ────────────────────────────────────────────────────────────

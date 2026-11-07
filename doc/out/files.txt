@@ -1,0 +1,12 @@
+$ ./EnCorelib 3 0 0 0 0 2 x y 2*x-2*x*y -y+x*y 0.1 20 4 0  0.9 1.1  2.9 3.1
+EnCorelib  mode=EndCover  method=tube  stepB=lohner  tubedegree=1  order=20  n=2
+         f  = (2*x-2*x*y, -y+x*y)
+         B0 = {[0.9, 1.1],[2.9, 3.1]}   H=4   eps=0.1
+time(ms)=30646
+Hull(T=4.000000)={[1.201730, 1.718819],[0.165442, 0.216428]}
+B1=(1.460274, 0.190935) +- (0.258544, 0.025493)
+wmax(B1)=0.517089
+#(C)=85  #E0=85  max_{B in C} wmax(B)=0.079347
+written -> E0.txt (85 boxes)
+written -> E1.txt (85 boxes)
+convex hull -> convex_hull.txt (20 pts)

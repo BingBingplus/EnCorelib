@@ -48,12 +48,12 @@ method     = 2
 # stepB:  0 = Lohner,  1 = +lognorm,  2 = Lohner-HO+lognorm,  3 = Lohner-HO
 stepB      = 0
 
-# tubedegree:  0 = default (order-1 = 19),  1 = Euler tube,  p>=2 = Taylor-p
+# tubedegree:  0 or 1 = the Euler tube (no other value is accepted)
 tubedegree = 0
 
 #── Output ─────────────────────────────────────────────────────────────────
 # output_mode: 0=time 1=+hull 2=+counts 3=+E0/E1 files 4=+plot files
 output_mode = 3
 
-# debug: 0 = silent, 1 = print containment warnings
+# debug: 0 = silent, 1 = one progress line per sub-box, 2 and 3 = more detail
 debug = 0

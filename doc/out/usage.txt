@@ -1,0 +1,13 @@
+$ ./EnCorelib
+Argument error: too few arguments
+
+Usage: EnCorelib output_mode mode method stepB tubedegree n \
+               var1 ... varn  f1 ... fn \
+               eps order T debug  lo1 hi1 ... lon hin
+
+  output_mode 0=time 1=+hull 2=+counts 3=+E0/E1 files 4=+plot files
+  mode        0=EndCover 1=Boundary
+  method      0=tube (default) 1=bisect 2=splitonly
+  stepB       0=lohner 1=lohner+lognorm 2=lohnerHO+lognorm 3=lohnerHO
+  tubedegree  0 or 1: the Euler tube (the only one available)
+  debug       0=silent 1=per sub-box 2=+Refine passes 3=+stages (on stderr)

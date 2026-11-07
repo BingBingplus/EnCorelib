@@ -1,0 +1,23 @@
+$ make audit
+eps=0.1 stepB=0 order=20
+eij  H=1   method=0  ok    79 boxes, 395 images: 0 boxes miss an image of their sub-box
+eij  H=1   method=1  ok    79 boxes, 395 images: 0 boxes miss an image of their sub-box
+eij  H=1   method=2  ok    79 boxes, 395 images: 0 boxes miss an image of their sub-box
+eg1  H=4   method=0  ok    85 boxes, 425 images: 0 boxes miss an image of their sub-box
+eg1  H=4   method=1  ok    85 boxes, 425 images: 0 boxes miss an image of their sub-box
+eg1  H=4   method=2  ok    85 boxes, 425 images: 0 boxes miss an image of their sub-box
+eg2  H=1   method=0  ok    65 boxes, 325 images: 0 boxes miss an image of their sub-box
+eg2  H=1   method=1  ok    65 boxes, 325 images: 0 boxes miss an image of their sub-box
+eg2  H=1   method=2  ok    65 boxes, 325 images: 0 boxes miss an image of their sub-box
+eg3  H=1   method=0  ok    21 boxes, 105 images: 0 boxes miss an image of their sub-box
+eg3  H=1   method=1  ok    21 boxes, 105 images: 0 boxes miss an image of their sub-box
+eg3  H=1   method=2  ok    21 boxes, 105 images: 0 boxes miss an image of their sub-box
+eg4  H=1   method=0  ok    20 boxes, 100 images: 0 boxes miss an image of their sub-box
+eg4  H=1   method=1  ok    20 boxes, 100 images: 0 boxes miss an image of their sub-box
+eg4  H=1   method=2  ok    20 boxes, 100 images: 0 boxes miss an image of their sub-box
+eg5  H=1   method=0  ok    1 boxes, 9 images: 0 boxes miss an image of their sub-box
+eg5  H=1   method=1  ok    1 boxes, 9 images: 0 boxes miss an image of their sub-box
+eg5  H=1   method=2  ok    1 boxes, 9 images: 0 boxes miss an image of their sub-box
+eg6  H=1   method=0  ok    73 boxes, 657 images: 0 boxes miss an image of their sub-box
+eg6  H=1   method=1  ok    73 boxes, 657 images: 0 boxes miss an image of their sub-box
+eg6  H=1   method=2  ok    73 boxes, 657 images: 0 boxes miss an image of their sub-box

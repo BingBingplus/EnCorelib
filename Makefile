@@ -10,6 +10,7 @@
 #      make check                 self-test
 #      make compare               diff the last table2 run against the paper
 #      make verify                sample-point check of the covers
+#      make audit                 box-by-box check of the covers
 #
 #  Selecting CAPD
 #  --------------
@@ -32,7 +33,7 @@ CXX      ?= g++
 CXXFLAGS ?= -std=c++17 -O2 -Wall -Wno-sign-compare -Wno-overloaded-virtual
 
 TARGET  := EnCorelib
-HEADERS := types.h symparse.h stepAB.h extend.h refine.h endcover.h boundary.h
+HEADERS := types.h progress.h symparse.h stepAB.h extend.h refine.h endcover.h boundary.h
 
 # ────────────────────────────────────────────────────────────────────────────
 #  1. Locate CAPD
@@ -135,10 +136,18 @@ capdref: repro/competitors/capd_compare.cpp $(HEADERS)
 	    $(CAPD_LIBS)
 	@echo "Built capdref"
 
-tools: Encoretraj capdref
+# Encoreaudit: box-by-box check of a cover (repro/audit_cover.sh).
+Encoreaudit: tools/audit_cover.cpp $(HEADERS)
+	$(CXX) $(CXXFLAGS) $(CAPD_CFLAGS) $(SYMENGINE_CFLAGS) \
+	    tools/audit_cover.cpp -o Encoreaudit \
+	    $(CAPD_LIBS) $(SYMENGINE_LIBS)
+	@echo "Built Encoreaudit"
+
+tools: Encoretraj capdref Encoreaudit
 
 clean:
 	rm -f $(TARGET) $(TARGET).exe Encoretraj Encoretraj.exe capdref capdref.exe
+	rm -f Encoreaudit Encoreaudit.exe
 	rm -f E0.txt E1.txt E_0.txt E_1.txt convex_hull.txt convex_hull_E0.txt out.txt
 
 distclean: clean
@@ -231,7 +240,12 @@ check: $(TARGET)
 verify: $(TARGET) Encoretraj
 	@bash repro/verify_cover.sh
 
-.PHONY: table2 table2-% compare figure1 figure4 check verify
+# Box by box: every box of the cover must meet the images of the centre and
+# the corners of its own sub-box of B0.
+audit: $(TARGET) Encoreaudit
+	@bash repro/audit_cover.sh
+
+.PHONY: table2 table2-% compare figure1 figure4 check verify audit
 
 # ────────────────────────────────────────────────────────────────────────────
 #  6. CMake alternative

@@ -1,0 +1,8 @@
+EnCorelib  mode=Boundary  method=tube  stepB=lohner  tubedegree=1  order=20  n=2
+         f  = (y, x^2)
+         B0 = {[0.95, 1.05],[-1.05, -0.95]}   H=4   eps=0.1
+time(ms)=16908
+Hull(T=4.000000)={[-0.714936, -0.524478],[-0.143026, 0.664930]}
+B1=(-0.619707, 0.260952) +- (0.095229, 0.403978)
+wmax(B1)=0.807956
+#(C)=26  #E0=26  max_{B in C} wmax(B)=0.097241

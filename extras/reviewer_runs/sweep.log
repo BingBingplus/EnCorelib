@@ -1,0 +1,50 @@
+=== c=1e-1  exact y(1)=8 ===
+rc=0 wall=153ms
+Total Time(ms): 16
+Hull(T=1.000000): {[8.000000, 8.000000]}
+  wmax=0.000000
+E0 boxes=1  E1 boxes=1
+
+=== c=1e-2  exact y(1)=98 ===
+rc=0 wall=137ms
+Total Time(ms): 38
+Hull(T=1.000000): {[98.000000, 98.000000]}
+  wmax=0.000000
+E0 boxes=1  E1 boxes=1
+
+=== c=1e-3  exact y(1)=998 ===
+rc=0 wall=188ms
+Total Time(ms): 91
+Hull(T=1.000000): {[998.000000, 998.000000]}
+  wmax=0.000000
+E0 boxes=1  E1 boxes=1
+
+=== c=1e-4  exact y(1)=9998 ===
+rc=0 wall=310ms
+Total Time(ms): 204
+Hull(T=1.000000): {[9998.000000, 9998.000000]}
+  wmax=0.000000
+E0 boxes=1  E1 boxes=1
+
+=== c=1e-5  exact y(1)=99997.999999999985 ===
+rc=0 wall=450ms
+Total Time(ms): 352
+Hull(T=1.000000): {[99997.999960, 99997.999978]}
+  wmax=0.000018
+E0 boxes=1  E1 boxes=1
+
+=== c=1e-6  exact y(1)=999998 ===
+rc=124 wall=60112ms
+
+=== c=1e-7  exact y(1)=9999998 ===
+rc=124 wall=60086ms
+
+=== c=1e-8  exact y(1)=99999998 ===
+rc=124 wall=60091ms
+
+=== c=1e-9  exact y(1)=999999997.99999988 ===
+rc=124 wall=60089ms
+
+=== c=1e-10  exact y(1)=9999999998 ===
+rc=124 wall=60097ms
+

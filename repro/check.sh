@@ -12,6 +12,10 @@
 #                                   in the form the `check` calls below take,
 #                                   so the expectations can be re-baselined
 #                                   after an intentional change.
+#
+#  The right-hand sides are written multiplied out (see
+#  examples/_template.txt), so the expected values hold whether or not the
+#  program was built with SymEngine.
 # ===========================================================================
 set -u
 
@@ -56,20 +60,20 @@ check() {
   fi
 }
 
-echo "the default: mode=EndCover, method=0, stepB=2, order=20"
+echo "mode=EndCover, method=0 (tube), stepB=2 (lohnerHO+lognorm), order=20"
 check "Eg1 Volterra  H=4  eps=1.0"  "(1.48, 0.19) +- (0.36, 0.04)"   5  -- \
       2 0 0 2 0 2 x y 2*x-2*x*y -y+x*y 1.0 20 4 0  0.9 1.1 2.9 3.1
 check "Eg2 VanDerPol H=1  eps=1.0"  "(-2.14, 0.57) +- (0.27, 0.22)"   1  -- \
-      2 0 0 2 0 2 x y y "(1-x^2)*y-x" 1.0 20 1 0  -3.1 -2.9 2.9 3.1
+      2 0 0 2 0 2 x y y "-x+y-x^2*y" 1.0 20 1 0  -3.1 -2.9 2.9 3.1
 check "Eg3 Quadratic H=1  eps=0.1"  "(0.28, -0.58) +- (0.15, 0.15)"   21  -- \
       2 0 0 2 0 2 x y y "x^2" 0.1 20 1 0  0.95 1.05 -1.05 -0.95
 check "Eg4 FitzHugh  H=1  eps=0.1"  "(1.76, 0.17) +- (0.08, 0.10)"   20  -- \
-      2 0 0 2 0 2 x y "x-x^3/3-y+0.5" "0.08*(x+0.7-0.8*y)" 0.1 20 1 0  0.9 1.1 -0.1 0.1
+      2 0 0 2 0 2 x y "0.5+x-y+(-1/3)*x^3" "0.056+0.08*x-0.064*y" 0.1 20 1 0  0.9 1.1 -0.1 0.1
 check "Eg5 Lorenz    H=1  eps=1.0"  "(-6.95, 3.00, 35.14) +- (0.03, 0.01, 0.04)"   1  -- \
-      2 0 0 2 0 3 x y z "10*(y-x)" "x*(28-z)-y" "x*y-8*z/3" 1.0 20 1 0 \
+      2 0 0 2 0 3 x y z "-10*x+10*y" "28*x-y-x*z" "(-8/3)*z+x*y" 1.0 20 1 0 \
       14.999 15.001 14.999 15.001 35.999 36.001
 check "Eg6 Roessler  H=1  eps=1.0"  "(-1.74, 1.86, 0.03) +- (0.15, 0.18, 0.00)"   1  -- \
-      2 0 0 2 0 3 x y z -y-z "x+0.2*y" "0.2+z*(x-5.7)" 1.0 20 1 0 \
+      2 0 0 2 0 3 x y z -y-z "x+0.2*y" "0.2-5.7*z+x*z" 1.0 20 1 0 \
       0.9 1.1 1.9 2.1 2.9 3.1
 
 echo
@@ -79,35 +83,35 @@ check "Eg1 Volterra  H=4  eps=1.0" "(1.47, 0.19) +- (0.38, 0.05)"   5  -- \
 check "Eg1 Volterra  H=4  eps=0.1" "(1.46, 0.19) +- (0.26, 0.03)"  85  -- \
       2 0 2 0 0 2 x y 2*x-2*x*y -y+x*y 0.1 20 4 0  0.9 1.1 2.9 3.1
 check "Eg2 VanDerPol H=1  eps=1.0" "(-2.14, 0.57) +- (0.29, 0.29)"  1  -- \
-      2 0 2 0 0 2 x y y "(1-x^2)*y-x" 1.0 20 1 0  -3.1 -2.9 2.9 3.1
+      2 0 2 0 0 2 x y y "-x+y-x^2*y" 1.0 20 1 0  -3.1 -2.9 2.9 3.1
 check "Eg3 Quadratic H=1  eps=0.1" "(0.28, -0.58) +- (0.15, 0.15)" 21  -- \
       2 0 2 0 0 2 x y y "x^2" 0.1 20 1 0  0.95 1.05 -1.05 -0.95
 check "Eg5 Lorenz    H=1  eps=1.0" \
       "(-6.95, 3.00, 35.14) +- (0.03, 0.01, 0.04)" 1 -- \
-      2 0 2 0 0 3 x y z "10*(y-x)" "x*(28-z)-y" "x*y-8*z/3" 1.0 20 1 0 \
+      2 0 2 0 0 3 x y z "-10*x+10*y" "28*x-y-x*z" "(-8/3)*z+x*y" 1.0 20 1 0 \
       14.999 15.001 14.999 15.001 35.999 36.001
 check "Eg6 Roessler  H=1  eps=1.0" \
       "(-1.74, 1.86, 0.03) +- (0.16, 0.18, 0.00)" 1 -- \
-      2 0 2 0 0 3 x y z -y-z "x+0.2*y" "0.2+z*(x-5.7)" 1.0 20 1 0 \
+      2 0 2 0 0 3 x y z -y-z "x+0.2*y" "0.2-5.7*z+x*z" 1.0 20 1 0 \
       0.9 1.1 1.9 2.1 2.9 3.1
 
 echo
 echo "the other refinement strategies, StepB variants and tube degrees"
 check "Eg2 H=1 eps=0.5  method=1"      "(-2.13, 0.58) +- (0.20, 0.09)"  5  -- \
-      2 0 1 2 0 2 x y y "(1-x^2)*y-x" 0.5 20 1 0  -3.1 -2.9 2.9 3.1
+      2 0 1 2 0 2 x y y "-x+y-x^2*y" 0.5 20 1 0  -3.1 -2.9 2.9 3.1
 check "Eg2 H=1 eps=0.5  stepB=0"       "(-2.13, 0.58) +- (0.21, 0.10)" 5 -- \
-      2 0 0 0 0 2 x y y "(1-x^2)*y-x" 0.5 20 1 0  -3.1 -2.9 2.9 3.1
+      2 0 0 0 0 2 x y y "-x+y-x^2*y" 0.5 20 1 0  -3.1 -2.9 2.9 3.1
 check "Eg2 H=1 eps=0.5  stepB=3"       "(-2.13, 0.58) +- (0.20, 0.09)" 5 -- \
-      2 0 0 3 0 2 x y y "(1-x^2)*y-x" 0.5 20 1 0  -3.1 -2.9 2.9 3.1
+      2 0 0 3 0 2 x y y "-x+y-x^2*y" 0.5 20 1 0  -3.1 -2.9 2.9 3.1
 check "Eg2 H=1 eps=0.5  tubedegree=1"  "(-2.13, 0.58) +- (0.20, 0.09)" 5 -- \
-      2 0 0 2 1 2 x y y "(1-x^2)*y-x" 0.5 20 1 0  -3.1 -2.9 2.9 3.1
+      2 0 0 2 1 2 x y y "-x+y-x^2*y" 0.5 20 1 0  -3.1 -2.9 2.9 3.1
 
 echo
 echo "Boundary mode"
 check "Eg1 boundary 2D  H=1"           "(0.08, 1.46) +- (0.01, 0.07)" 4 -- \
       2 1 0 2 0 2 x y 2*x-2*x*y -y+x*y 1.0 20 1 0  0.9 1.1 2.9 3.1
 check "Eg6 boundary 3D  H=1"           "(-1.74, 1.86, 0.03) +- (0.15, 0.18, 0.00)" 6 -- \
-      2 1 0 2 0 3 x y z -y-z "x+0.2*y" "0.2+z*(x-5.7)" 1.0 20 1 0 \
+      2 1 0 2 0 3 x y z -y-z "x+0.2*y" "0.2-5.7*z+x*z" 1.0 20 1 0 \
       0.9 1.1 1.9 2.1 2.9 3.1
 
 if [ "$BASELINE" = "1" ]; then exit 0; fi

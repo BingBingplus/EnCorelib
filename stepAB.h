@@ -9,7 +9,6 @@
 //      StepB                    Subsection 4.2
 //      Lemma 2.1 ball           Subsection 2.4
 //      h_euler(H,M,mu,delta)    equation (2.6), Lemma 2.2
-//      Taylor tube              the degree-p generalisation of the Euler tube
 //      SolutionChain            how a stage chain is evaluated (see below)
 //
 //  Interval arithmetic and the normalised Taylor coefficients f^[i] are taken
@@ -145,7 +144,7 @@ inline std::pair<double, IVector> StepA(IMap f, IVector E0, double H,
         for (int j = 0; j < n; ++j) dk[j] = probe.coefficient(j, k);
 
         capd::vectalg::EuclNorm<IVector, IMatrix> euclNorm;
-        const double M = sup(euclNorm(dk));
+        const double M = euclNorm(dk).rightBound();
         h = std::pow(delta / M, 1.0 / k);
         if (h >= trialH) { h = trialH; break; }
         trialH /= 2.0;
@@ -268,95 +267,49 @@ inline IVector StepB(IMap f, int degree, double h, const IVector& B0,
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-//  Tube thresholds                            (paper, equation (2.6))
+//  Tube threshold                     (paper, Lemma 2.2, equation (2.6))
 // ═══════════════════════════════════════════════════════════════════════════
 //
-//                       / min{H, 2 mu delta / (M (e^{mu H} - 1) - mu^2 delta)}  mu > 0
-//  h_euler(H,M,mu,delta) = | min{H, delta / (M H)}                              mu = 0
-//                       \ min{H, 2 mu delta / (M (e^{mu H} - 1))}               mu < 0
+//                       / min{H, mu delta / (M (e^{mu H} - 1))}                   mu > 0
+//  h_euler(H,M,mu,delta) = | min{H, delta / (M H)}                                mu = 0
+//                       \ min{H, 2 mu delta / (2 M (e^{mu H} - 1) - mu^2 delta)}  mu < 0
 //
 //  H     : stage length
 //  M     : bound on || f^[2] || over the full enclosure
 //  mu    : logNorm bound on the full enclosure
-//  delta : target tube radius at the end of the stage
+//  delta : target tube radius
 //
-//  If 0 < h <= h_euler then the Euler polygon stays inside the delta-tube of
-//  the exact trajectory (Lemma 2.2).  A return value of 0 means "no usable
-//  tube at this stage", which is what an overflowing e^{mu H} amounts to.
+//  If 0 < h <= h_euler then the Euler polygon (2.5) stays inside the
+//  delta-tube of the exact trajectory (Lemma 2.2).  M = 0 means that the
+//  Euler polygon is exact.  A return value of 0 means "no usable tube at
+//  this stage", which is what an overflowing e^{mu H} amounts to.
 inline double hEuler(double H, double M, double mu, double delta) {
-    if (M == 0.0 || delta == 0.0) return H;
-    const double e = std::exp(mu * H);
+    if (!(H > 0.0) || !(delta > 0.0)) return 0.0;
+    if (M == 0.0) return H;
+    const double e = std::expm1(mu * H);                 // e^{mu H} - 1
     if (!std::isfinite(e)) return 0.0;
-    const double h = (mu > 0.0)
-        ? (2.0 * mu * delta) / (M * (e - 1.0) - mu * mu * delta)
-        : (2.0 * mu * delta) / (M * (e - 1.0));
+    double h;
+    if (mu > 0.0)       h = mu * delta / (M * e);
+    else if (mu == 0.0) h = delta / (M * H);
+    else                h = 2.0 * mu * delta / (2.0 * M * e - mu * mu * delta);
     if (!std::isfinite(h) || h <= 0.0) return 0.0;
     return std::min(H, h);
 }
 
-// || f^[p+1] || over the box B.
-inline double taylorCoeffNorm(IMap f, const IVector& B, int p, int degreeAvail) {
-    const int n = B.dimension();
-    const int solverOrder = std::max(p + 1, degreeAvail);
-    ICnOdeSolver solver(f, solverOrder);
-    solver.computeCoefficients(B, solverOrder);
-
-    IVector coeffs(n);
-    for (int i = 0; i < n; ++i)
-        coeffs[i] = solver.coefficient(i, p + 1);
-
-    capd::vectalg::EuclNorm<IVector, IMatrix> euclNorm;
-    return std::max(0.0, euclNorm(coeffs).rightBound());
-}
-
-// Degree-p tube threshold.  With Cbar = || f^[p+1] ||:
-//
-//   h = (mu delta / (Cbar (e^{mu H} - 1)))^{1/p}                  (mu > 0)
-//   h = (delta / (Cbar H))^{1/p}                                  (mu = 0)
-//   h = (2 mu delta / (Cbar (e^{mu H} - 1) - mu^2 delta))^{1/p}   (mu < 0)
-//
-// For p = 1 this is h_euler above.
-inline double hTaylorStep(double H, double Cbar, double mu, double delta, int p) {
-    if (H <= 0.0 || delta <= 0.0 || p <= 0) return 0.0;
-    if (Cbar <= 0.0) return H;
-
-    double candidate = H;
-    const double tiny = 1e-12;
-
-    if (std::abs(mu) < tiny) {
-        const double ratio = delta / (Cbar * H);
-        if (ratio > 0.0) candidate = std::pow(ratio, 1.0 / static_cast<double>(p));
-    } else if (mu >= 0.0) {
-        const double den = Cbar * (std::exp(mu * H) - 1.0);
-        const double ratio = (den > 0.0) ? (mu * delta / den) : -1.0;
-        if (ratio > 0.0) candidate = std::pow(ratio, 1.0 / static_cast<double>(p));
-    } else {
-        const double den = Cbar * (std::exp(mu * H) - 1.0) - (mu * mu) * delta;
-        const double ratio = (std::abs(den) > tiny) ? (2.0 * mu * delta / den) : -1.0;
-        if (ratio > 0.0) candidate = std::pow(ratio, 1.0 / static_cast<double>(p));
-    }
-
-    if (!std::isfinite(candidate) || candidate <= 0.0) return H;
-    return std::min(H, candidate);
-}
-
-//  tubedegree == 1 : Euler tube      (equation (2.6))
-//  tubedegree >= 2 : Taylor tube of that degree
+//  The step-size threshold h^i_euler of stage i (item [G5]).  The tube of
+//  Theorem 5.1 follows the Euler polygon (2.5) of the centre, so the
+//  threshold is h_euler of (2.6), with M = || J_f(F) . f(F) || / 2, which
+//  bounds || f^[2] || on F.  `tubedegree` is 1, the Euler tube; the command
+//  line accepts no other degree.
 inline double computeHTube(IMap f, const IVector& F_enclosure,
                             double H, double delta, double mu,
-                            int tubedegree, int degreeAvail) {
-    if (tubedegree == 1) {
-        // M = || J_f(F) . f(F) || / 2  bounds || f^[2] || on F.
-        IMatrix J      = computeJacobian(f, F_enclosure);
-        IVector fval   = f(F_enclosure);
-        IVector coeffs = J * fval;
-        capd::vectalg::EuclNorm<IVector, IMatrix> euclNorm;
-        const double M = sup(euclNorm(coeffs)) / 2.0;
-        if (M == 0.0 || std::abs(mu) < 1e-14) return H;
-        return hEuler(H, M, mu, delta);
-    }
-    const double Cbar = taylorCoeffNorm(f, F_enclosure, tubedegree, degreeAvail);
-    return hTaylorStep(H, Cbar, mu, delta, tubedegree);
+                            int /*tubedegree*/, int /*degreeAvail*/) {
+    IMatrix J      = computeJacobian(f, F_enclosure);
+    IVector fval   = f(F_enclosure);
+    IVector coeffs = J * fval;
+    capd::vectalg::EuclNorm<IVector, IMatrix> euclNorm;
+    const double M = euclNorm(coeffs).rightBound() / 2.0;
+    return hEuler(H, M, mu, delta);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -412,9 +365,9 @@ public:
     //  The scaffold is laid out one step at a time, every step becoming a
     //  stage or a mini-step of one.  Three primitives are enough:
     //
-    //      proposedStep()  the step StepB would like to take next
-    //      step(hmax)      take it when it is no longer than hmax, and a step
-    //                      of exactly hmax when it is not
+    //      proposedStep()  the length of the last step, a guide to the next
+    //      step(hmax)      one step of at most hmax: the step StepB wants,
+    //                      cut back to hmax when it would be longer
     //      marchTo(t)      reach t exactly, halving any step that fails
     //
     //  step() returns false and leaves the doubleton exactly as it was when
@@ -430,7 +383,7 @@ public:
     bool step(double hmax) {
         if (!(hmax > 0.0)) return false;
         const double hp = proposedStep();
-        return doStep((hp > 0.0 && hp <= hmax) ? 0.0 : hmax);
+        return doStep((hp > 0.0 && hp <= hmax) ? 0.0 : hmax, hmax);
     }
 
     bool marchTo(double t) {
@@ -450,17 +403,22 @@ public:
     double time() const { return m_t; }
 
 private:
-    //  One step: h = 0 means "the step StepB wants", h > 0 means exactly h.
-    //  The doubleton is put back as it was when the step does not go through.
-    bool doStep(double h) {
+    //  One step, ending no later than hmax from now.  h = 0 means "the step
+    //  StepB wants", which its error control chooses afresh for every step
+    //  and which is therefore capped at hmax; h > 0 means exactly h.  The
+    //  doubleton is put back as it was when the step does not go through.
+    bool doStep(double h, double hmax) {
         if (m_plain) {
             CnRect2Set snap(*m_plainSet);
+            const auto cap = m_plainSolver->getMaxStep();
             bool ok = true;
             try {
                 if (h > 0.0) { m_plainSolver->turnOffStepControl(); m_plainSolver->setStep(h); }
+                else         m_plainSolver->setMaxStep(interval(hmax));
                 m_plainSet->move(*m_plainSolver);
             } catch (const std::exception&) { ok = false; }
             if (h > 0.0) m_plainSolver->turnOnStepControl();
+            m_plainSolver->setMaxStep(cap);
             if (ok) {
                 const IVector next(*m_plainSet);
                 if (usable(next)) {
@@ -473,12 +431,15 @@ private:
             return false;
         }
         C0HORect2Set snap(*m_hoSet);
+        const auto cap = m_hoSolver->getMaxStep();
         bool ok = true;
         try {
             if (h > 0.0) { m_hoSolver->turnOffStepControl(); m_hoSolver->setStep(h); }
+            else         m_hoSolver->setMaxStep(interval(hmax));
             m_hoSet->move(*m_hoSolver);
         } catch (const std::exception&) { ok = false; }
         if (h > 0.0) m_hoSolver->turnOnStepControl();
+        m_hoSolver->setMaxStep(cap);
         if (ok) {
             const IVector next(*m_hoSet);
             if (usable(next)) {

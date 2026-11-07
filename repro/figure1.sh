@@ -15,7 +15,7 @@
 #
 #      Validated trajectories from (0, y0), y0 in {-2.5, 1.5, 2.0, 2.5}.
 #      MATLAB's ode45 gets the y0 = 2.0 orbit qualitatively wrong; run
-#      tools/pendulum_ode45.m (MATLAB) or tools/pendulum_compare.py (Python)
+#      tools/pendulum_ode45.m (MATLAB) or tools/plot_pendulum.py (Python)
 #      for the left-hand panel.
 #
 #  Output:  repro/out/fig1/eijgenraam/eps<value>/{E0,E1}.txt

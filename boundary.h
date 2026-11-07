@@ -113,8 +113,20 @@ inline void TwoDimEncAlgo(
                                     : (Sbound = st.E.back(), true);
 
                 double nxt = st.E[0][varDim].rightBound();
+                if (debuglevel >= progress::SUBBOX)
+                    progress::report("edge x" + std::to_string(fixedDim + 1) + "="
+                                     + progress::num(fixedVal.leftBound())
+                                     + ": covered x" + std::to_string(varDim + 1) + " in ["
+                                     + progress::num(cur) + ", " + progress::num(nxt) + "] of ["
+                                     + progress::num(a) + ", " + progress::num(b) + "]"
+                                     + "  wmax(E_m)=" + progress::sci(wmax(st.E.back())));
                 cur = (nxt > cur) ? nxt : (cur + b) / 2.0;
             } catch (const std::exception& e) {
+                if (debuglevel >= progress::SUBBOX)
+                    progress::report("edge x" + std::to_string(fixedDim + 1) + "="
+                                     + progress::num(fixedVal.leftBound())
+                                     + ": segment [" + progress::num(cur) + ", " + progress::num(b)
+                                     + "] failed (" + e.what() + "), halving it");
                 if ((b - cur) <= minWidth || depth >= maxDepth) {
                     IVector pt = edgeBox;
                     pt[varDim] = interval(cur, cur);
@@ -201,7 +213,9 @@ inline void ThreeDimEncAlgo(
             face[fixDim] = interval(fv, fv);
             if (verbose)
                 std::cout << "  [Boundary nD] face dim=" << fixDim << " side=" << side << "\n";
-            endcover::EndCover(face, eps0, H, endEnc, 2000000);
+            if (debuglevel >= progress::SUBBOX)
+                progress::report("face x" + std::to_string(fixDim + 1) + "=" + progress::num(fv));
+            endcover::EndCover(face, eps0, H, endEnc, 2000000, endcover::COVER_ALL, debuglevel);
         }
     }
     Sdata.hull = hasBound ? Sbound : B0;
