@@ -2,11 +2,11 @@ $ ./EndCorelib 3 0 0 0 0 2 x y 2*x-2*x*y -y+x*y 0.1 20 4 0  0.9 1.1  2.9 3.1
 EndCorelib  mode=EndCover  method=tube  stepB=lohner  tubedegree=1  order=20  n=2
          f  = (2*x-2*x*y, -y+x*y)
          B0 = {[0.9, 1.1],[2.9, 3.1]}   H=4   eps=0.1
-time(ms)=209690
-Hull(T=4.000000)={[1.203229, 1.719808],[0.165650, 0.216653]}
-B1=(1.461519, 0.191152) +- (0.258289, 0.025501)
-wmax(B1)=0.516579
-#(C)=48  #E0=48  max_{B in C} wmax(B)=0.097083
-written -> E0.txt (48 boxes)
-written -> E1.txt (48 boxes)
-convex hull -> convex_hull.txt (13 pts)
+time(ms)=48148
+Hull(T=4.000000)={[1.201730, 1.719808],[0.165442, 0.216653]}
+B1=(1.460769, 0.191047) +- (0.259039, 0.025606)
+wmax(B1)=0.518079
+#(C)=52  #E0=52  max_{B in C} wmax(B)=0.098052
+written -> E0.txt (52 boxes)
+written -> E1.txt (52 boxes)
+convex hull -> convex_hull.txt (12 pts)

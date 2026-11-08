@@ -57,8 +57,8 @@ section 6 of the user guide has the timings.
   installed and the form the numbers of the paper come from. Results no
   longer depend on whether SymEngine was found: written as
   `10*(y-x), x*(28-z)-y, x*y-8*z/3`, Lorenz to H = 5 with stepB = 0 took
-  116 scaffolds and 78 boxes in a build without SymEngine, and 95 scaffolds
-  and 64 boxes multiplied out.
+  141 scaffolds and 103 boxes in a build without SymEngine, and 95
+  scaffolds and 64 boxes multiplied out.
 
 ### Progress reports and messages
 

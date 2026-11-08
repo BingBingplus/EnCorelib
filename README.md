@@ -83,11 +83,11 @@ Output:
 EndCorelib  mode=EndCover  method=tube  stepB=lohner  tubedegree=1  order=20  n=2
          f  = (2*x-2*x*y, -y+x*y)
          B0 = {[0.9, 1.1],[2.9, 3.1]}   H=4   eps=1
-time(ms)=338
-Hull(T=4.000000)={[1.013875, 1.945561],[0.131115, 0.263816]}
-B1=(1.479718, 0.197466) +- (0.465843, 0.066350)
-wmax(B1)=0.931686
-#(C)=2  #E0=2  max_{B in C} wmax(B)=0.798371
+time(ms)=420
+Hull(T=4.000000)={[0.851460, 1.945561],[0.098855, 0.263816]}
+B1=(1.398511, 0.181336) +- (0.547050, 0.082480)
+wmax(B1)=1.094101
+#(C)=2  #E0=2  max_{B in C} wmax(B)=0.997973
 ```
 
 The following shell scripts are used to build the rows of Table 2 called
@@ -243,11 +243,11 @@ Example — Lotka–Volterra, `B0 = Box(1,3)(0.1)`, `H = 4`, `ε = 1`:
 EndCorelib  mode=EndCover  method=tube  stepB=lohner  tubedegree=1  order=20  n=2
          f  = (2*x-2*x*y, -y+x*y)
          B0 = {[0.9, 1.1],[2.9, 3.1]}   H=4   eps=1
-time(ms)=249
-Hull(T=4.000000)={[1.013875, 1.945561],[0.131115, 0.263816]}
-B1=(1.479718, 0.197466) +- (0.465843, 0.066350)
-wmax(B1)=0.931686
-#(C)=2  #E0=2  max_{B in C} wmax(B)=0.798371
+time(ms)=274
+Hull(T=4.000000)={[0.851460, 1.945561],[0.098855, 0.263816]}
+B1=(1.398511, 0.181336) +- (0.547050, 0.082480)
+wmax(B1)=1.094101
+#(C)=2  #E0=2  max_{B in C} wmax(B)=0.997973
 ```
 
 `B1` is the `B1` column of Table 2 and `#(C)` its `#(C)` column.
@@ -357,7 +357,7 @@ is found at build time every `f_i` is first multiplied out into monomials;
 otherwise it is evaluated as written.  The `f =` line of the output shows the
 form used.  On Lorenz the difference shows in the work: to `H = 5` with
 `ε = 1` and `stepB=0`, written as `10*(y-x), x*(28-z)-y, x*y-8*z/3`, it took
-116 scaffolds and 78 boxes when evaluated as written, and 95 scaffolds and
+141 scaffolds and 103 boxes when evaluated as written, and 95 scaffolds and
 64 boxes multiplied out.  The files in
 `src/examples/` and the scripts in `src/repro/` therefore use the multiplied-out form,
 which is also the form the paper's numbers come from, and give the same
@@ -372,11 +372,12 @@ per scaffold taken from the queue, under a header:
 ```
 $ ./EndCorelib 2 0 0 0 0 2 x y 2*x-2*x*y -y+x*y 0.5 20 4 1  0.9 1.1  2.9 3.1
      time    run depth  wmax(B) wmax(E_m) queue    done  outcome
-     0.4s      1     0  2.0e-01   4.1e-01     2   25.0%  resolved, E_0 -> 1.0e-01, 2 split off
-     0.6s      2     2  1.0e-01   4.0e-01     1   50.0%  resolved
-     0.9s      3     1  2.0e-01   3.7e-01     1   75.0%  resolved, E_0 -> 1.0e-01, 1 split off
-     1.0s      4     2  1.0e-01   3.6e-01     0  100.0%  resolved
-     1.0s  EndCover finished: 4 scaffolds processed, deepest level 2, #(C)=4
+     0.8s      1     0  2.0e-01   4.1e-01     2   25.0%  resolved, E_0 -> 1.0e-01, 2 split off
+     1.0s      2     2  1.0e-01   2.4e-01     2   37.5%  resolved, E_0 -> 1.0e-01, 1 split off
+     1.1s      3     3  1.0e-01   2.6e-01     1   50.0%  resolved
+     1.3s      4     1  2.0e-01   3.9e-01     1   75.0%  resolved, E_0 -> 1.0e-01, 1 split off
+     1.4s      5     2  1.0e-01   4.6e-01     0  100.0%  resolved
+     1.4s  EndCover finished: 5 scaffolds processed, deepest level 3, #(C)=5
 ```
 
 `depth` says how often `B0` was split to get the initial box of the
@@ -396,11 +397,11 @@ is, when such a box can no longer be halved, and the message says so:
 
 ```
 $ make run EG=src/examples/eg5Lorenz.mk T=100 stepB=3 debug=1
-     0.4s      1     0  2.0e-03         -     2    0.0%  split: Extend: StepB cannot advance at t=3.83076 (H=100)
-     0.8s      2     1  2.0e-03         -     3    0.0%  split: Extend: StepB cannot advance at t=4.01253 (H=100)
+     0.5s      1     0  2.0e-03         -     2    0.0%  split: Extend: StepB cannot advance at t=3.83076 (H=100)
+     1.1s      2     1  2.0e-03         -     3    0.0%  split: Extend: StepB cannot advance at t=4.01253 (H=100)
    ...
-   375.4s    121   120  7.1e-15         -   122    0.0%  split: Extend: StepB cannot advance at t=26.4072 (H=100)
-   380.7s    122   121  7.1e-15         -   121    0.0%  stopped: Extend: StepB cannot advance at t=26.4064 (H=100)
+   232.5s    121   120  7.1e-15         -   122    0.0%  split: Extend: StepB cannot advance at t=26.4072 (H=100)
+   235.2s    122   121  7.1e-15         -   121    0.0%  stopped: Extend: StepB cannot advance at t=26.4064 (H=100)
 [EndCover stopped] double precision exhausted
 Extend: StepB cannot advance at t=26.4064 (H=100)
 The sub-box of B0 on which this happened (depth 121 of the subdivision) cannot be halved in double precision.
@@ -418,25 +419,25 @@ end with exit status 2; computations that stop end with exit status 3.
 Measured on the six problems of the paper (user guide, section 6):
 
 - `eps` and `T` decide the result and most of the cost.  From `ε = 0.5` to
-  `ε = 0.1` the number of boxes grew 2 to 12 times where the runs finished;
-  with the settings of the example files, Lotka-Volterra, Lorenz and Rössler
-  did not finish within ten minutes at `ε = 0.1`.  For a chaotic system every
-  level of splitting gains a fixed amount of time and doubles the work (user
-  guide, section 7).
+  `ε = 0.1` the number of boxes grew 3 to 11 times where the runs finished;
+  with the settings of the example files, Lorenz did not finish within ten
+  minutes at `ε = 0.1`, and Rössler took about nine.  For a chaotic system every level of
+  splitting gains a fixed amount of time and doubles the work (user guide,
+  section 7).
 - `debug=1` is worth switching on for anything that runs longer than a minute.
-- `method=2` was the fastest strategy, up to 120 times faster than
-  `method=0` at `ε = 0.1`, and finished every run; its `B1` was up to 21%
-  wider at `ε = 0.5` and at most 0.5% wider at `ε = 0.1`.
+- `method=2` was the fastest strategy at `ε = 0.1`, up to 17 times faster
+  than `method=0`, and the only one that finished Lorenz there; its `B1` was
+  up to 3.5% wider.
 - `stepB=1` gave the results of `stepB=0`, and `stepB=2` those of `stepB=3`,
   each at a higher cost.  `stepB=3` was the fastest variant wherever both it
   and `stepB=0` finished.
-- `order=20` was the fastest order; 10, 15 or 30 sometimes gave a hull a few
-  per cent narrower.
+- `order=20` was the fastest order; 10, 15 or 30 often gave a narrower hull,
+  at up to 5.5 times the time.
 - `mode=1` is for when only the bounding box `B1` is needed.
-- `method=2` with `stepB=3` finished every problem within a minute, 2.4 to
-  86 times faster than the settings of the example files where those
-  finished within ten minutes; `B1` was within 0.6% at `ε = 0.1` and 43% wider
-  on Lorenz to `H = 5` at `ε = 1`.
+- `method=2` with `stepB=3` finished every problem within a minute, 4 to 33
+  times faster than the settings of the example files where those finished
+  within ten minutes; `B1` was at most 1.7% wider, and 13% narrower on
+  Lorenz to `H = 5` at `ε = 1`.
 - The example files keep the settings of the paper's experiments
   (`method=0 stepB=0 order=20`), which are also the ones `make table2` uses.
 
@@ -517,8 +518,8 @@ inside some box of `C`.  It tests the left inclusion only: a box of `C` that
 lies far from the end set would pass.
 
 ```
-ok    eg1  method=0  #(C)=10     all 16 sample images covered
-ok    eg1  method=1  #(C)=10     all 16 sample images covered
+ok    eg1  method=0  #(C)=11     all 16 sample images covered
+ok    eg1  method=1  #(C)=11     all 16 sample images covered
 ok    eg1  method=2  #(C)=12     all 16 sample images covered
 ...
 ```
@@ -534,7 +535,7 @@ eps=0.1 stepB=0 order=20
 eij  H=1   method=0  ok    40 boxes, 200 images: 0 boxes miss an image of their sub-box
 eij  H=1   method=1  ok    40 boxes, 200 images: 0 boxes miss an image of their sub-box
 eij  H=1   method=2  ok    40 boxes, 200 images: 0 boxes miss an image of their sub-box
-eg1  H=4   method=0  ok    48 boxes, 240 images: 0 boxes miss an image of their sub-box
+eg1  H=4   method=0  ok    52 boxes, 260 images: 0 boxes miss an image of their sub-box
 ...
 ```
 

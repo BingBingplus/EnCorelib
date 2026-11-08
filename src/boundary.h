@@ -33,12 +33,10 @@
 //      While (S.t.back() < H)  S.Extend(H, eps0)
 //      Q0.push(S.Refine(eps0))
 //
-//  A new scaffold Init(B) is extended to H.  A scaffold split off by Split()
-//  already reaches H; it is a clone of the scaffold it came from, and is
-//  evaluated from its own E_0 first.  Refine reads the whole scaffold and
-//  refines all of its stages, so it is applied once the scaffold has reached
-//  the horizon.  The scaffolds Refine splits off are returned.
-inline std::vector<Scaffold> runScaffold(
+//  Refine reads the whole scaffold and refines all of its stages, so it is
+//  applied once the scaffold has reached the horizon.  The initial boxes of
+//  the scaffolds Refine splits off are returned.
+inline std::vector<IVector> runScaffold(
     Scaffold& S,
     IMap F,
     double eps0, double delta, int degree,
@@ -51,16 +49,9 @@ inline std::vector<Scaffold> runScaffold(
     // goes through a single doubleton and is never re-enclosed in a box.
     SolutionChain chain(F, degree, S.E[0], stepBtype);
 
-    if (S.m() == 0) {
-        //  While (S.T < H)  S.Extend(H, eps0)
-        ExtendToHorizon(F, S, chain, eps0, delta, degree, H, stepBtype,
-                        tubedegree, dim, debuglevel);
-    } else if (!Reevaluate(S, F, chain, eps0, degree, stepBtype, tubedegree,
-                           dim, debuglevel) && debuglevel >= progress::REFINE) {
-        progress::report("    split-off scaffold evaluated: " + std::to_string(S.m())
-                         + " stages, wmax(E_0)=" + progress::sci(wmax(S.E[0]))
-                         + " wmax(E_m)=" + progress::sci(wmax(S.E.back())));
-    }
+    //  While (S.T < H)  S.Extend(H, eps0)
+    ExtendToHorizon(F, S, chain, eps0, delta, degree, H, stepBtype,
+                    tubedegree, dim, debuglevel);
 
     for (int d = 0; d < S.E.back().dimension(); ++d) {
         if (!std::isfinite(S.E.back()[d].leftBound()) ||

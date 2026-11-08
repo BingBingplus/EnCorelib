@@ -61,7 +61,7 @@ check() {
 }
 
 echo "mode=EndCover, method=0 (tube), stepB=2 (lohnerHO+lognorm), order=20"
-check "Eg1 Volterra  H=4  eps=1.0"  "(1.48, 0.20) +- (0.43, 0.06)"   2  -- \
+check "Eg1 Volterra  H=4  eps=1.0"  "(1.43, 0.19) +- (0.48, 0.07)"   2  -- \
       2 0 0 2 0 2 x y 2*x-2*x*y -y+x*y 1.0 20 4 0  0.9 1.1 2.9 3.1
 check "Eg2 VanDerPol H=1  eps=1.0"  "(-2.14, 0.57) +- (0.27, 0.22)"   1  -- \
       2 0 0 2 0 2 x y y "-x+y-x^2*y" 1.0 20 1 0  -3.1 -2.9 2.9 3.1
@@ -97,13 +97,13 @@ check "Eg6 Roessler  H=1  eps=1.0" \
 
 echo
 echo "the other refinement strategies, StepB variants and tube degrees"
-check "Eg2 H=1 eps=0.5  method=1"      "(-2.13, 0.58) +- (0.21, 0.09)"  2  -- \
+check "Eg2 H=1 eps=0.5  method=1"      "(-2.13, 0.58) +- (0.21, 0.10)"  2  -- \
       2 0 1 2 0 2 x y y "-x+y-x^2*y" 0.5 20 1 0  -3.1 -2.9 2.9 3.1
-check "Eg2 H=1 eps=0.5  stepB=0"       "(-2.13, 0.58) +- (0.21, 0.09)" 2 -- \
+check "Eg2 H=1 eps=0.5  stepB=0"       "(-2.12, 0.59) +- (0.21, 0.10)" 2 -- \
       2 0 0 0 0 2 x y y "-x+y-x^2*y" 0.5 20 1 0  -3.1 -2.9 2.9 3.1
-check "Eg2 H=1 eps=0.5  stepB=3"       "(-2.13, 0.58) +- (0.20, 0.09)" 2 -- \
+check "Eg2 H=1 eps=0.5  stepB=3"       "(-2.13, 0.58) +- (0.21, 0.10)" 2 -- \
       2 0 0 3 0 2 x y y "-x+y-x^2*y" 0.5 20 1 0  -3.1 -2.9 2.9 3.1
-check "Eg2 H=1 eps=0.5  tubedegree=1"  "(-2.13, 0.58) +- (0.20, 0.09)" 2 -- \
+check "Eg2 H=1 eps=0.5  tubedegree=1"  "(-2.13, 0.58) +- (0.21, 0.10)" 2 -- \
       2 0 0 2 1 2 x y y "-x+y-x^2*y" 0.5 20 1 0  -3.1 -2.9 2.9 3.1
 
 echo

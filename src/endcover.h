@@ -15,8 +15,9 @@
 //
 //  The scaffold work for one popped scaffold -- Extend to H, then Refine --
 //  is done by the caller-supplied callable `run` (runScaffold in boundary.h),
-//  which returns the scaffolds that Refine's Split() split off.  They are
-//  pushed on the queue, and S.E.back() goes into C.
+//  which returns the initial boxes of the scaffolds that Refine's Split()
+//  split off.  Their scaffolds Init(E0-) are pushed on the queue, and
+//  S.E.back() goes into C.
 //
 //  When the scaffold of a sub-box cannot be carried to the horizon, its
 //  initial box is split in two by halving a longest side, and both halves go
@@ -58,8 +59,8 @@ struct EndCoverResult {
 };
 
 // Signature of the scaffold run:  run(S) brings S to the horizon, refines it
-// and returns the scaffolds Refine split off.
-using ScaffoldRun = std::function<std::vector<Scaffold>(Scaffold&)>;
+// and returns the initial boxes of the scaffolds Refine split off.
+using ScaffoldRun = std::function<std::vector<IVector>(Scaffold&)>;
 
 //  B0          the initial box
 //  G0          the mini-scaffold every new scaffold starts from (Init)
@@ -73,11 +74,12 @@ inline EndCoverResult EndCover(const IVector& B0, const MiniScaffold& G0,
     if (maxSplits <= 0)
         throw std::invalid_argument("EndCover: maxSplits must be positive");
 
-    // The working queue of scaffolds.  `depth` is the number of splits
-    // between B0 and the initial box of the scaffold; it is only reported.
-    struct Pending { Scaffold S; int depth; };
+    // The working queue of scaffolds, each held as Init(B) of its initial box
+    // B.  `depth` is the number of splits between B0 and B; it is only
+    // reported.
+    struct Pending { IVector B; int depth; };
     std::vector<Pending> Q0;
-    Q0.push_back({Init(B0, G0), 0});
+    Q0.push_back({B0, 0});
     EndCoverResult result;
     result.cover.reserve(256);
     result.initBoxes.reserve(256);
@@ -102,29 +104,30 @@ inline EndCoverResult EndCover(const IVector& B0, const MiniScaffold& G0,
                          + "  outcome");
 
     while (!Q0.empty()) {
-        Pending P = std::move(Q0.back());
+        const Pending P = Q0.back();
         Q0.pop_back();
-        const IVector B = P.S.E[0];
+        const IVector& B = P.B;
+        Scaffold S = Init(B, G0);
         ++runs;
         deepest = std::max(deepest, P.depth);
 
         std::string outcome, wEnd = "-";   // for the progress report
         try {
-            std::vector<Scaffold> Qout = run(P.S);
+            const std::vector<IVector> Qout = run(S);
             const int k = static_cast<int>(Qout.size());
             // The j-th split-off is j splits below B; S.E[0] is k splits below.
             for (int j = 0; j < k; ++j)
-                Q0.push_back({std::move(Qout[static_cast<size_t>(j)]), P.depth + j + 1});
+                Q0.push_back({Qout[static_cast<size_t>(j)], P.depth + j + 1});
             splits += k;
 
-            result.cover.push_back(P.S.E.back());
-            result.initBoxes.push_back(P.S.E[0]);
-            done += shareOf(P.S.E[0], B0);
+            result.cover.push_back(S.E.back());
+            result.initBoxes.push_back(S.E[0]);
+            done += shareOf(S.E[0], B0);
             deepest = std::max(deepest, P.depth + k);
-            wEnd = progress::sci(wmax(P.S.E.back()));
+            wEnd = progress::sci(wmax(S.E.back()));
             outcome = "resolved";
             if (k > 0)
-                outcome += ", E_0 -> " + progress::sci(wmax(P.S.E[0])) + ", "
+                outcome += ", E_0 -> " + progress::sci(wmax(S.E[0])) + ", "
                          + std::to_string(k) + " split off";
         } catch (const std::exception& ex) {
             // The scaffold could not be carried to the horizon: split B.
@@ -137,8 +140,8 @@ inline EndCoverResult EndCover(const IVector& B0, const MiniScaffold& G0,
                     + std::to_string(P.depth) + " of the subdivision) cannot be"
                       " halved in double precision.");
             }
-            Q0.push_back({Init(upper, G0), P.depth + 1});
-            Q0.push_back({Init(lower, G0), P.depth + 1});
+            Q0.push_back({upper, P.depth + 1});
+            Q0.push_back({lower, P.depth + 1});
             ++splits;
             outcome = std::string("split: ") + ex.what();
         }

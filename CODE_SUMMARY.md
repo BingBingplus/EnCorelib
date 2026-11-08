@@ -520,15 +520,15 @@ Euclidean norm, so every ball radius is that of the circumscribed ball.
 ### `Split()` (Subsection 5.3)
 
 ```cpp
-inline bool Split(Scaffold& S, std::vector<Scaffold>& Qout);
+inline bool Split(Scaffold& S, std::vector<IVector>& Qout);
 ```
 
 Splits `S.E[0]` into two sub-boxes `E0+` and `E0-` by halving it along a
 longest side.  `E0+` replaces the initial end-enclosure, `S.E[0] ← E0+`.
-`E0-` goes to a new scaffold `S'`, a clone of `S` except that
-`S'.E[0] ← E0-`, which is pushed into `Qout`; Refine returns `Qout` and
-goes on with `S`.  Returns false, leaving `S` as it is, when no side of
-`S.E[0]` can be halved in double precision (`halveLongestSide`).
+`E0-` is the initial box of a new scaffold; it is pushed into `Qout`, which
+Refine returns, and Refine goes on with `S`.  Returns false, leaving `S` as
+it is, when no side of `S.E[0]` can be halved in double precision
+(`halveLongestSide`).
 
 ### `Reevaluate` — the scaffold after its `E₀` has changed
 
@@ -543,8 +543,7 @@ inline bool Reevaluate(Scaffold& S, IMap f, SolutionChain& chain, double eps0,
 | some stage has been bisected (`ℓ_i > 0`) | `Evaluate()`, **keeping the time grid** | the grid carries Bisect's work |
 | nothing has been refined | `RebuildScaffold()`, **a new grid** | nothing to keep, and a smaller box admits longer steps |
 
-Refine calls it on `S` after every `Split`; `runScaffold` calls it on a
-split-off clone before refining it.
+Refine calls it on `S` after every `Split`.
 
 ### The three stopping criteria (Subsection 5.3)
 
@@ -559,10 +558,11 @@ split-off clone before refining it.
 ### `Refine`
 
 ```cpp
-inline std::vector<Scaffold> Refine(Scaffold& S, int dim, IMap f, SolutionChain& chain,
-                                    int method, int stepBtype, int degree,
-                                    double eps0, int tubedegree, int debuglevel);
-                                    // returns Qout, the split-off scaffolds
+inline std::vector<IVector> Refine(Scaffold& S, int dim, IMap f, SolutionChain& chain,
+                                   int method, int stepBtype, int degree,
+                                   double eps0, int tubedegree, int debuglevel);
+                                   // returns Qout, the initial boxes of the
+                                   // split-off scaffolds
 ```
 
 **Early return.**  If `wmax(S.E.back()) ≤ ε₀` already holds, Refine returns at
@@ -630,7 +630,7 @@ struct EndCoverResult {
     std::vector<IVector> initBoxes;  // S.E[0] of the scaffold behind each box of C
 };
 
-using ScaffoldRun = std::function<std::vector<Scaffold>(Scaffold&)>;
+using ScaffoldRun = std::function<std::vector<IVector>(Scaffold&)>;
 ```
 
 ### Functions
@@ -642,11 +642,12 @@ using ScaffoldRun = std::function<std::vector<Scaffold>(Scaffold&)>;
 
 ### The `run` protocol
 
-`run(S)` is `runScaffold` (boundary.h): it brings the popped scaffold to the
-horizon, refines it, and returns the scaffolds that `Split` split off.
-EndCover pushes them into `Q0` and `S.E.back()` into `C`; `S.E[0]` goes into
-`initBoxes`.  The initial boxes of the scaffolds whose end-enclosures form `C`
-partition `B0`.
+`run(S)` is `runScaffold` (boundary.h): it brings the popped scaffold
+`S = Init(B)` to the horizon, refines it, and returns the initial boxes of
+the scaffolds that `Split` split off.  EndCover pushes a scaffold for each
+of them into `Q0` and `S.E.back()` into `C`; `S.E[0]` goes into
+`initBoxes`.  The initial boxes of the scaffolds whose end-enclosures form
+`C` partition `B0`.
 
 **Exceptions.**  When `run` throws, the scaffold could not be carried to the
 horizon.  Its initial box `B` is split in two by `halveLongestSide`, and both
@@ -666,10 +667,10 @@ length, share of `B0` covered, outcome), and a summary line closes the run.
 ### `runScaffold` — the engine shared by both modes
 
 ```cpp
-inline std::vector<Scaffold> runScaffold(Scaffold& S, IMap F,
-                                         double eps0, double delta, int degree, double H,
-                                         int method, int stepBtype, int tubedegree,
-                                         int debuglevel, int dim);
+inline std::vector<IVector> runScaffold(Scaffold& S, IMap F,
+                                        double eps0, double delta, int degree, double H,
+                                        int method, int stepBtype, int tubedegree,
+                                        int debuglevel, int dim);
 ```
 
 **The inner loop of EndCover:**
@@ -679,11 +680,9 @@ While (S.T < H)  S.Extend(H, ε₀)
 Q0.push(S.Refine(ε₀))
 ```
 
-A new scaffold `Init(B)` is extended to H.  A scaffold split off by `Split`
-already reaches H; it is a clone of the scaffold it came from and is first
-evaluated from its own `E₀` (`Reevaluate`).  `Refine` reads the whole scaffold
-and refines **all** of its stages, so it is called once the scaffold has
-reached the horizon.  The scaffolds it splits off are returned.
+`Refine` reads the whole scaffold and refines **all** of its stages, so it is
+called once the scaffold has reached the horizon.  The initial boxes of the
+scaffolds it splits off are returned.
 
 **The carried doubleton.**  `runScaffold` owns one `SolutionChain`; `Extend`
 advances it one step per stage, and after `Split` / `Bisect` `Refine` walks it
@@ -849,7 +848,7 @@ IMap F  ←  symparse.h (optional SymEngine expansion)
 │     │       ├ Part B: NeedSplit → Split           │   │
 │     │       └ Part C: CanTerminate → wrap up      │   │
 │     └────────────────────────────────────────────┘   │
-│   returns the split-off scaffolds → Q0               │
+│   returns the boxes split off → Init(box) into Q0    │
 │   C.push(S.E.back())                                 │
 └──────────────────────────────────────────────────────┘
     ↓
@@ -870,8 +869,7 @@ main (EndCorelib.cpp)
        └─ run(S)                                      ← lambda in main
             └─ runScaffold(S, ...)                     (boundary.h)
                  ├─ SolutionChain (carried, anchored at E₀)   (stepAB.h)
-                 ├─ ExtendToHorizon(...)  or, for a split-off clone,
-                 │  Reevaluate(...)                    (extend.h / refine.h)
+                 ├─ ExtendToHorizon(...)               (extend.h)
                  │    └─ Extend(...)  once per stage
                  │         ├─ StepA(f, E₀, H-t, ε)      (stepAB.h) ← step bound
                  │         ├─ chain.step(h)             (stepAB.h) ← one StepB step

@@ -4,19 +4,22 @@ EndCorelib  mode=EndCover  method=tube  stepB=lohner  tubedegree=1  order=20  n=
          B0 = {[0.9, 1.1],[2.9, 3.1]}   H=4   eps=0.5
      time    run depth  wmax(B) wmax(E_m) queue    done  outcome
      0.1s      scaffold laid out to t=4: 55 stages, wmax(E_0)=2.0e-01 wmax(E_m)=6.3e+00
-     0.2s      Refine pass 1: wmax(E_m)=8.0e-01 wmax(E_0)=2.0e-01 mu_max=3.39 m=55 bisected=55 frozen=0 splits=1
-     0.4s      Refine pass 2: wmax(E_m)=4.1e-01 wmax(E_0)=1.0e-01 mu_max=3.04 m=55 bisected=55 frozen=0 splits=1
-     0.4s      1     0  2.0e-01   4.1e-01     2   25.0%  resolved, E_0 -> 1.0e-01, 2 split off
-     0.5s      split-off scaffold evaluated: 55 stages, wmax(E_0)=1.0e-01 wmax(E_m)=4.0e-01
-     0.5s      2     2  1.0e-01   4.0e-01     1   50.0%  resolved
-     0.6s      split-off scaffold evaluated: 55 stages, wmax(E_0)=2.0e-01 wmax(E_m)=6.8e-01
-     0.9s      Refine pass 1: wmax(E_m)=3.7e-01 wmax(E_0)=1.0e-01 mu_max=2.79 m=55 bisected=55 frozen=0 splits=1
-     0.9s      3     1  2.0e-01   3.7e-01     1   75.0%  resolved, E_0 -> 1.0e-01, 1 split off
-     1.0s      split-off scaffold evaluated: 55 stages, wmax(E_0)=1.0e-01 wmax(E_m)=3.6e-01
-     1.0s      4     2  1.0e-01   3.6e-01     0  100.0%  resolved
-     1.0s  EndCover finished: 4 scaffolds processed, deepest level 2, #(C)=4
-time(ms)=962
-Hull(T=4.000000)={[1.143705, 1.784663],[0.155291, 0.229647]}
-B1=(1.464184, 0.192469) +- (0.320479, 0.037178)
-wmax(B1)=0.640959
-#(C)=4  #E0=4  max_{B in C} wmax(B)=0.414844
+     0.3s      Refine pass 1: wmax(E_m)=8.0e-01 wmax(E_0)=2.0e-01 mu_max=3.39 m=55 bisected=55 frozen=0 splits=1
+     0.8s      Refine pass 2: wmax(E_m)=4.1e-01 wmax(E_0)=1.0e-01 mu_max=3.04 m=55 bisected=55 frozen=0 splits=1
+     0.8s      1     0  2.0e-01   4.1e-01     2   25.0%  resolved, E_0 -> 1.0e-01, 2 split off
+     0.9s      scaffold laid out to t=4: 44 stages, wmax(E_0)=1.0e-01 wmax(E_m)=5.2e-01
+     1.1s      Refine pass 1: wmax(E_m)=2.4e-01 wmax(E_0)=1.0e-01 mu_max=2.87 m=44 bisected=44 frozen=0 splits=1
+     1.1s      2     2  1.0e-01   2.4e-01     2   37.5%  resolved, E_0 -> 1.0e-01, 1 split off
+     1.2s      scaffold laid out to t=4: 42 stages, wmax(E_0)=1.0e-01 wmax(E_m)=2.6e-01
+     1.2s      3     3  1.0e-01   2.6e-01     1   50.0%  resolved
+     1.3s      scaffold laid out to t=4: 46 stages, wmax(E_0)=2.0e-01 wmax(E_m)=1.0e+00
+     1.4s      Refine pass 1: wmax(E_m)=3.9e-01 wmax(E_0)=1.0e-01 mu_max=2.82 m=46 bisected=46 frozen=0 splits=1
+     1.4s      4     1  2.0e-01   3.9e-01     1   75.0%  resolved, E_0 -> 1.0e-01, 1 split off
+     1.5s      scaffold laid out to t=4: 44 stages, wmax(E_0)=1.0e-01 wmax(E_m)=4.6e-01
+     1.5s      5     2  1.0e-01   4.6e-01     0  100.0%  resolved
+     1.5s  EndCover finished: 5 scaffolds processed, deepest level 3, #(C)=5
+time(ms)=1500
+Hull(T=4.000000)={[1.093289, 1.784663],[0.146599, 0.229647]}
+B1=(1.438976, 0.188123) +- (0.345687, 0.041524)
+wmax(B1)=0.691374
+#(C)=5  #E0=5  max_{B in C} wmax(B)=0.458567

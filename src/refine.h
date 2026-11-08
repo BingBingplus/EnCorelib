@@ -271,22 +271,17 @@ inline int EulerTube(Scaffold& S, int idx, int dim, IMap f, int debuglevel) {
 //  Split()                                         (paper, Subsection 5.3)
 // ═══════════════════════════════════════════════════════════════════════════
 //  Splits S.E[0] into two sub-boxes E0+ and E0- by halving it along a longest
-//  side.  E0+ replaces the initial end-enclosure, S.E[0] <- E0+.  E0- is given
-//  to a new scaffold S', a clone of S except that S'.E[0] <- E0-, which is
-//  collected in Qout; Refine returns Qout and goes on with S.
+//  side.  E0+ replaces the initial end-enclosure, S.E[0] <- E0+.  E0- is the
+//  initial box of a new scaffold; it is collected in Qout, which Refine
+//  returns, and Refine goes on with S.
 //
 //  Returns false, leaving S as it is, when no side of S.E[0] can be halved in
 //  double precision.
-inline bool Split(Scaffold& S, std::vector<Scaffold>& Qout) {
+inline bool Split(Scaffold& S, std::vector<IVector>& Qout) {
     IVector plus, minus;
     if (!halveLongestSide(S.E[0], plus, minus)) return false;
 
-    Qout.push_back(S);
-    Scaffold& clone = Qout.back();
-    clone.E[0]      = minus;
-    clone.F[0]      = minus;
-    clone.G[0].E[0] = minus;
-    clone.G[0].F[0] = minus;
+    Qout.push_back(minus);
 
     S.E[0]      = plus;
     S.F[0]      = plus;
@@ -298,7 +293,7 @@ inline bool Split(Scaffold& S, std::vector<Scaffold>& Qout) {
 // ═══════════════════════════════════════════════════════════════════════════
 //  Reevaluate : the scaffold after its E_0 has changed
 // ═══════════════════════════════════════════════════════════════════════════
-//  Split replaces E_0 by one of its halves, in S and in the clone.  Bisect's
+//  Split replaces E_0 by one of its halves.  Bisect's
 //  work lives in the time grid, so the grid is kept as soon as there is any
 //  refinement in it and Evaluate walks it again from the new E_0; otherwise
 //  the smaller box gets a grid of its own.  Returns true when the grid was
@@ -387,8 +382,8 @@ inline bool CanTerminate(const std::vector<char>& freezeFlag, bool needSplit) {
 //  eps0        Refine returns once wmax(S.E.back()) <= eps0
 //  debuglevel  2 = one line per pass of the main loop; see progress.h
 //
-//  Returns Qout, the scaffolds split off by Split().
-inline std::vector<Scaffold> Refine(Scaffold& S,
+//  Returns Qout, the initial boxes of the scaffolds split off by Split().
+inline std::vector<IVector> Refine(Scaffold& S,
                                     int dim,
                                     IMap f,
                                     SolutionChain& chain,
@@ -403,7 +398,7 @@ inline std::vector<Scaffold> Refine(Scaffold& S,
     const bool useTube   = (method == REFINE_TUBE);
     const bool splitOnly = !useBisect && !useTube;
 
-    std::vector<Scaffold> Qout;
+    std::vector<IVector> Qout;
     if (wmax(S.E.back()) <= eps0) return Qout;
 
     int m = S.m();

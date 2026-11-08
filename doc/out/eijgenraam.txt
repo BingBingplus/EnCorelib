@@ -2,7 +2,7 @@ $ make run EG=src/examples/fig1Eijgenraam.mk
 EndCorelib  mode=EndCover  method=tube  stepB=lohner  tubedegree=1  order=20  n=2
          f  = (0, x^2)
          B0 = {[-1, 1],[0, 0]}   H=1   eps=0.1
-time(ms)=151
+time(ms)=172
 Hull(T=1.000000)={[-1.000000, 1.000000],[-0.000000, 1.000000]}
 B1=(0.000000, 0.500000) +- (1.000000, 0.500000)
 wmax(B1)=2.000000
